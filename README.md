@@ -10,13 +10,14 @@ site address : [codeup](https://codeup.kr/problemsetsol.php?psid=33)
 
 
 ### 2. SWExpert(ssafy) + programmers
-- take ssafy training 
 
-[ssafy](https://swexpertacademy.com/main/main.do)
+take ssafy training 
 
-- go to programmers, Solve Steps 1 and 2
+➡ [ssafy](https://swexpertacademy.com/main/main.do)
 
-[programmers](https://programmers.co.kr/learn/challenges)
+go to programmers, Solve Steps 1 and 2
+
+➡ [programmers](https://programmers.co.kr/learn/challenges)
 
 &nbsp;
 
