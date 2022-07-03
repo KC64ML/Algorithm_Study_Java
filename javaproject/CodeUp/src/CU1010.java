@@ -9,6 +9,7 @@ public class CU1010 {
 		int a  = sc.nextInt();
 		System.out.println(a);
 		
+		
 	
 	}
 
