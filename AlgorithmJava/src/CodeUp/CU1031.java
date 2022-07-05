@@ -2,11 +2,11 @@ package CodeUp;
 
 import java.io.*;
 
-public class CU1029 {
+public class CU1031 {
     public static void main(String[] args) {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-            System.out.format("%.11f",Double.parseDouble(br.readLine()));
+            System.out.format("%o",Integer.parseInt(br.readLine()));
 
             br.close();
         } catch (Exception e) {
