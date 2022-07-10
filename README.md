@@ -6,6 +6,7 @@ After choosing a language, have to solve the basic 100 problems in codeup!
 
 site address : [codeup](https://codeup.kr/problemsetsol.php?psid=33)
 
+
 &nbsp;
 
 
@@ -36,5 +37,6 @@ when i arrived B type in Samsung competency test, will be able to pass!
 
 
 &nbsp;
+
 &nbsp;
 
