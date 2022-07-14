@@ -7,8 +7,9 @@ public class pg64061 {
         final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         final BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
         String[] inputs = br.readLine().split("");
+        System.out.println("Hello");
 
-        
+
 
 
         br.close();
