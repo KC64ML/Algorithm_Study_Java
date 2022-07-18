@@ -10,7 +10,7 @@ site address : [codeup](https://codeup.kr/problemsetsol.php?psid=33)
 &nbsp;
 
 
-### 2. SWExpert(ssafy) + programmers
+### 2. SWExpert(ssafy) + programmers + plzrun(basic algorithm)
 
 take ssafy training 👈 **(now)**
 
