@@ -8,9 +8,9 @@ public class sw1979 {
         int t = sc.nextInt();
 
         for (int tc = 0; tc < t; tc++) {
-            int n = sc.nextInt(); // 가로 세로 크기
-            int k = sc.nextInt(); // 단어 길이
-            int answer = 0; // 답
+            int n = sc.nextInt();
+            int k = sc.nextInt();
+            int answer = 0;
 
             int[][] arr = new int[n + 2][n + 2];
 
