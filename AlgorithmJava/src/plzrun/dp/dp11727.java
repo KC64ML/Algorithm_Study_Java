@@ -7,6 +7,7 @@ public class dp11727 {
         Scanner sc = new Scanner(System.in);
         int n = Integer.parseInt(sc.nextLine());
 
+
         int[] dp = new int[n + 1];
 
         for (int i = 1; i < n + 1; i++) {
