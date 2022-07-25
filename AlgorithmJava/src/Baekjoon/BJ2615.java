@@ -49,6 +49,7 @@ public class BJ2615 {
                         }
                     }
 
+                    
                     // 대각선 밑을 확인한다.
                     if (visited[i][j][1] == false) {
                         cnt = 1;
