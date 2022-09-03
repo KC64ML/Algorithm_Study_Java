@@ -1,110 +1,164 @@
 package Baekjoon;
 
-import Baekjoon.implementation.BJ16236;
-
-import java.util.*;
-
-
-
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.Scanner;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
 
 public class test {
-    static int shark_i, shark_j, shark_w, shark_eat; // 상어좌표 i,j 상어크기w 현재 먹은 먹이eat(성장하면 초기화)
-    static int[] di = { 0, 0, 1, -1 };
-    static int[] dj = { 1, -1, 0, 0 };
 
-    static int N; // 지도 크기
-    static int[][] map; // 물고기 정보 지도
-    static boolean[][] visit; // bfs 탐색할 때 큐에 들어간 좌표 또 안들어가게
+    static int N;
+    static int[][] arr;
+    static int midXY;
+    static ArrayList<Integer>[][] accessScience;
+    static ArrayList<int[]> xyStart;
+    static long answer;
 
-    static int ans; // 아기 상어가 살아남은 총 시간
+    static void maronmo(int x, int y, int distance, int idx) {
+        int cnt = 0;
+        for (int i = x - distance; i <= x; i++) {
+            for (int j = y - cnt; j <= y + cnt; j++) {
+                if (0 <= i && i <= 30 && 0 <= j && j <= 30) {
+                    if (i != x || j != y) {
+                        accessScience[i][j].add(idx);
+                    }
 
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-
-        N = sc.nextInt();
-        map = new int[N][N];
-
-        for (int i = 0; i < N; i++) {
-            for (int j = 0; j < N; j++) {
-                map[i][j] = sc.nextInt();
-                if (map[i][j] == 9) { // 초기 상어 위치
-                    shark_i = i;
-                    shark_j = j;
-                    shark_w = 2; // 초기 크기 2
-                    map[i][j] = 0; // 지도에 있는 상어 공중부양.
                 }
             }
-        } // end input
-
-        while (true) {
-            boolean result = bfs(); // 상어 현재 위치에서 먹을 수 있는 먹이 있나? 있으면 먹어야지
-            if (!result) // 먹이 못먹었어 ? 먹을수 있는게 없나보네 .. 엄마한테 가라
-                break;
+            cnt += 1;
         }
-        System.out.println(ans);
+
+        cnt = distance - 1;
+        for (int i = x + 1; i <= x + distance; i++) {
+            for (int j = y - cnt; j <= y + cnt; j++) {
+                if (0 <= i && i <= 30 && 0 <= j && j <= 30) {
+                    if (i != x || j != y) {
+                        accessScience[i][j].add(idx);
+                    }
+                }
+            }
+            cnt -= 1;
+        }
     }
 
-    static boolean bfs() {
-        Queue<Point> queue = new LinkedList<>(); // 이동 스케줄
-        visit = new boolean[N][N];
+    static void checkLoc(int x, int y) {
+        for (int i = 0; i < 31; i++) {
+            for (int j = 0; j < 31; j++) {
+                if ((i != x || j != y) && (accessScience[i][j].size() + accessScience[x][y].size()) >= N) {
+                    boolean[] visited = new boolean[N];
+                    int[] distance = new int[N];
+                    // 첫 번째것 검색
+                    for (int in_Idx = 0; in_Idx < accessScience[x][y].size(); in_Idx++) {
+                        int curIdx = accessScience[x][y].get(in_Idx);
+                        visited[curIdx] = true;
+                        distance[curIdx] = Math.abs(x - xyStart.get(accessScience[x][y].get(in_Idx))[0])
+                                + Math.abs(y - xyStart.get(accessScience[x][y].get(in_Idx))[1]);
+                        // x - xyStart.get(accessScience[x][y].get(in_Idx)][0], y -
+                        // xyStart.get(accessScience[x][y].get(in_Idx)][1
+                    }
+                    for (int in_Idx = 0; in_Idx < accessScience[i][j].size(); in_Idx++) {
 
-        queue.add(new Point(shark_i, shark_j));
-        visit[shark_i][shark_j] = true;
+                        int curIdx = accessScience[i][j].get(in_Idx);
+                        if (!visited[curIdx]) {
+                            visited[curIdx] = true;
+                            distance[curIdx] = Math.abs(i - xyStart.get(accessScience[i][j].get(in_Idx))[0])
+                                    + Math.abs(j - xyStart.get(accessScience[i][j].get(in_Idx))[1]);
+                        } else {
+                            int curDate = Math.abs(i - xyStart.get(accessScience[i][j].get(in_Idx))[0])
+                                    + Math.abs(j - xyStart.get(accessScience[i][j].get(in_Idx))[1]);
+                            distance[curIdx] = Math.min(distance[curIdx], curDate);
+                        }
+                    }
 
-        int dist = 0; // 먹이까지의 거리
-        int feed_i = N, feed_j = N; // 먹이 있다없다 + 위치 체크 변수 (i, j가 더 작아질수록 위,왼쪽에 있는 거임.)
-        while (!queue.isEmpty()) { // 상어가 이동가능한 후보칸이 남아있는한 계속 탐색
-            int size = queue.size(); // 현재 이동스케줄 몇개있나 보자!(출발점에서 같은 거리에 있는 스케줄 갯수)
+                    boolean checkCurHear = false;
+                    long checkSum = 0;
+                    for (int checkVisit = 0; checkVisit < N; checkVisit++) {
+                        if (!visited[checkVisit]) {
+                            checkCurHear = true;
+                            break;
+                        } else
+                            checkSum += distance[checkVisit];
+                    }
 
-            for (int s = 0; s < size; s++) {
-                Point now = queue.poll();
-                for (int d = 0; d < 4; d++) {
-                    int nexti = now.i + di[d];
-                    int nextj = now.j + dj[d];
-                    if(nexti<0 || nexti>=N || nextj<0 || nextj>=N || map[nexti][nextj]>shark_w) continue; // 이동 불가
-                    else if((map[nexti][nextj]==0 || map[nexti][nextj]==shark_w)&&!visit[nexti][nextj]) { // 이동만 가능
-                        queue.add(new Point(nexti, nextj));
-                        visit[nexti][nextj] = true;
-                    }else if(map[nexti][nextj]<shark_w && map[nexti][nextj]>0) { // 먹이다!!!!
-                        if(nexti<feed_i) { // 높이가 위면 무조건 먹는게 좋징
-                            feed_i = nexti;
-                            feed_j = nextj;
-                        }else if(nexti == feed_i) { // 기존에 찾아놓은 다른 먹이랑 높이 같으면 더 왼쪽!
-                            feed_j = Math.min(nextj, feed_j);
+                    // 전체 방문했을 때
+                    if (!checkCurHear) {
+                        answer = Math.min(answer, checkSum);
+                    }
+                }
+
+            }
+        }
+    }
+
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+        int T = Integer.parseInt(br.readLine());
+        arr = new int[31][31];
+        for (int tk = 1; tk <= T; tk++) {
+            String s = br.readLine().replace(" ", "");
+            N = Integer.parseInt(s);
+            arr = new int[31][31];
+            midXY = 30 / 2;
+            accessScience = new ArrayList[31][31];
+            answer = Long.MAX_VALUE;
+            for (int i = 0; i < 31; i++) {
+                for (int j = 0; j < 31; j++) {
+                    accessScience[i][j] = new ArrayList();
+                }
+            }
+
+            xyStart = new ArrayList<>();
+            // 마름모를 생성해준다.
+            for (int i = 0; i < N; i++) {
+                StringTokenizer st = new StringTokenizer(br.readLine());
+                int curX = Integer.parseInt(st.nextToken());
+                int curY = Integer.parseInt(st.nextToken());
+                int distance = Integer.parseInt(st.nextToken());
+
+                xyStart.add(new int[]{midXY + curX, midXY + curY});
+                arr[midXY + curX][midXY + curY] = 1;
+                maronmo(midXY + curX, midXY + curY, distance, i);
+            }
+
+            // 1 확인 : 배열에 저장된 인덱스의 크기가 N일 때 확인해준다.
+            for (int i = 0; i < 31; i++) {
+                for (int j = 0; j < 31; j++) {
+                    if (accessScience[i][j].size() == N) {
+                        long checkSum = 0;
+                        for (int in_drink = 0; in_drink < N; in_drink++) {
+                            int drinkX = xyStart.get(in_drink)[0];
+                            int drinkY = xyStart.get(in_drink)[1];
+
+                            checkSum += Math.abs(i - drinkX) + Math.abs(j - drinkY);
+
+                        }
+
+                        answer = Math.min(answer, checkSum);
+                    }
+                }
+            }
+
+            if (answer == Long.MAX_VALUE) {
+                // 2 확인 :
+                for (int i = 0; i < 31; i++) {
+                    for (int j = 0; j < 31; j++) {
+                        if (accessScience[i][j].size() > 0) {
+                            checkLoc(i, j);
                         }
                     }
                 }
-            } // 같은 거리에 있는 좌표 뺐으면 큐에 좌표 남았어도 일단 정지
-
-            // 먹이 없었으면 그냥 계속 진행인데 먹이가 있으면?! 먹어야됨! 여러개면 ?! 위, 왼쪽을 골라야함!
-            dist++;
-            if (feed_i < N && feed_j < N) { // 먹이가 있었네?!
-                shark_i = feed_i;
-                shark_j = feed_j;
-                map[shark_i][shark_j] = 0;
-                shark_eat++; // 상어가 먹이 먹음.
-                if(shark_eat == shark_w) { // 충분히 먹어서 성장!
-                    shark_w++;
-                    shark_eat=0;
-                }
-                ans += dist; // 먹이한테 가는 거리(시간)
-                return true;
             }
-        } // end while
 
-        return false;
-    }
+            System.out.printf("#%d ", tk);
+            if (answer == Long.MAX_VALUE) {
+                System.out.println(-1);
+            } else {
+                System.out.println(answer);
+            }
 
-    static class Point {
-        int i, j;
-
-        Point(int i, int j) {
-            this.i = i;
-            this.j = j;
         }
+
+        br.close();
     }
 }
 
