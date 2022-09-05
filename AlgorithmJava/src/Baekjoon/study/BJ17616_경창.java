@@ -2,10 +2,9 @@ package Baekjoon.study;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.StringTokenizer;
 
-public class BJ17616 {
+public class BJ17616_경창 {
     static int N, M, X;
     static int cnt, reverseCnt;
     static ArrayList<Integer>[] arrayList;
