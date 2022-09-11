@@ -11,26 +11,17 @@ public class BJ5567 {
     static boolean[] visited;
     static int answer;
 
-    static void bfs(int idx, int cnt) {
+    // dfs를 통해 연결된 노드들을 다 확인한다.
+    static void dfs(int idx, int cnt) {
 
-        Queue<Integer> queue = new ArrayDeque<>();
-
-
-        // bfs로 변경해서 풀면 된다.
-        queue.add(idx);
         if (cnt == 2) {
-            System.out.println("idx : " + idx + " cnt : " + cnt);
             return;
         }
 
-
+        // 방문한 곳을 다 체크해준다.
         for (int i = 0; i < list[idx].size(); i++) {
-            if (list[idx].get(i) != 1 && !visited[list[idx].get(i)]) {
-                System.out.println("시작 : " + idx + " " + list[idx].get(i));
-                visited[list[idx].get(i)] = true;
-                answer += 1;
-                dfs(list[idx].get(i), cnt + 1);
-            }
+            visited[list[idx].get(i)] = true;
+            dfs(list[idx].get(i), cnt + 1);
         }
     }
 
@@ -55,10 +46,17 @@ public class BJ5567 {
             int b = Integer.parseInt(st.nextToken());
 
             list[a].add(b);
+            list[b].add(a);
         }
 
         visited = new boolean[n + 1];
         dfs(1, 0);
+
+        // 현재 노드가 방문한 곳인지 확인한 후, answer += 1
+        for (int i = 2; i <= n; i++) {
+            if (visited[i]) answer++;
+        }
+
 
         sb.append(answer);
 

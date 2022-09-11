@@ -21,30 +21,30 @@ public class BJ1326 {
         Queue<Integer> queue = new ArrayDeque<>();
         queue.add(x);
         check[x] = true;
-
-        while (!q.empty()) {
-            int temp = q.front();
-            q.pop();
-
-            if (temp == to) {
-                return;
-            }
-
-            for (int i = temp + road[temp]; i <= N; i += road[temp]) {
-                if (!check[i]) {
-                    record[i] = record[temp] + 1;
-                    queue.push(i);
-                    check[i] = true;
-                }
-            }
-            for (int i = temp - road[temp]; i >=1; i -= road[temp]) {
-                if (!check[i]) {
-                    record[i] = record[temp] + 1;
-                    queue.push(i);
-                    check[i] = true;
-                }
-            }
-        }
+//
+//        while (!q.empty()) {
+//            int temp = q.front();
+//            q.pop();
+//
+//            if (temp == to) {
+//                return;
+//            }
+//
+//            for (int i = temp + road[temp]; i <= N; i += road[temp]) {
+//                if (!check[i]) {
+//                    record[i] = record[temp] + 1;
+//                    queue.push(i);
+//                    check[i] = true;
+//                }
+//            }
+//            for (int i = temp - road[temp]; i >=1; i -= road[temp]) {
+//                if (!check[i]) {
+//                    record[i] = record[temp] + 1;
+//                    queue.push(i);
+//                    check[i] = true;
+//                }
+//            }
+//        }
     }
 
     public static void main(String[] args) throws IOException {
