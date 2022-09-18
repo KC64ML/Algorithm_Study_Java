@@ -29,7 +29,7 @@ public class BJ5567 {
                 System.out.println("시작 : " + idx + " " + list[idx].get(i));
                 visited[list[idx].get(i)] = true;
                 answer += 1;
-                dfs(list[idx].get(i), cnt + 1);
+                bfs(list[idx].get(i), cnt + 1);
             }
         }
     }
@@ -58,7 +58,7 @@ public class BJ5567 {
         }
 
         visited = new boolean[n + 1];
-        dfs(1, 0);
+        bfs(1, 0);
 
         sb.append(answer);
 
