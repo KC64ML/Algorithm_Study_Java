@@ -16,49 +16,6 @@ public class BJ1326 {
     static int a, b;
 
 
-<<<<<<< HEAD
-//    // 확인해야하는 곳 : https://bbeomgeun.tistory.com/45
-//    static void bfs(int x, int y){
-//        Queue<Integer> queue = new ArrayDeque<>();
-//        queue.add(x);
-//        check[x] = true;
-=======
-    // 확인해야하는 곳 : https://bbeomgeun.tistory.com/45
-    static void bfs(int x, int y){
-        Queue<Integer> queue = new ArrayDeque<>();
-        queue.add(x);
-        check[x] = true;
->>>>>>> b8802effed903fa667a8aa3096685c5a3e19b3c9
-//
-//        while (!q.empty()) {
-//            int temp = q.front();
-//            q.pop();
-//
-//            if (temp == to) {
-//                return;
-//            }
-//
-//            for (int i = temp + road[temp]; i <= N; i += road[temp]) {
-//                if (!check[i]) {
-//                    record[i] = record[temp] + 1;
-//                    queue.push(i);
-//                    check[i] = true;
-//                }
-//            }
-//            for (int i = temp - road[temp]; i >=1; i -= road[temp]) {
-//                if (!check[i]) {
-//                    record[i] = record[temp] + 1;
-//                    queue.push(i);
-//                    check[i] = true;
-//                }
-//            }
-//        }
-<<<<<<< HEAD
-//    }
-=======
-    }
->>>>>>> b8802effed903fa667a8aa3096685c5a3e19b3c9
-
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 

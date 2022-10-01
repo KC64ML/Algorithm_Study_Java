@@ -20,17 +20,10 @@ public class BJ5567 {
 
         // 방문한 곳을 다 체크해준다.
         for (int i = 0; i < list[idx].size(); i++) {
-<<<<<<< HEAD
-            if (list[idx].get(i) != 1 && !visited[list[idx].get(i)]) {
-                System.out.println("시작 : " + idx + " " + list[idx].get(i));
-                visited[list[idx].get(i)] = true;
-                answer += 1;
-                bfs(list[idx].get(i), cnt + 1);
-            }
-=======
+
             visited[list[idx].get(i)] = true;
             dfs(list[idx].get(i), cnt + 1);
->>>>>>> b8802effed903fa667a8aa3096685c5a3e19b3c9
+
         }
     }
 
@@ -59,7 +52,7 @@ public class BJ5567 {
         }
 
         visited = new boolean[n + 1];
-        bfs(1, 0);
+        dfs(1, 0);
 
         // 현재 노드가 방문한 곳인지 확인한 후, answer += 1
         for (int i = 2; i <= n; i++) {

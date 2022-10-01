@@ -6,26 +6,26 @@ public class PG416217 {
     static String[][] infoStr;
     public static int[] solution(String[] info, String[] query) {
         int[] answer = {};
-        infoStr = new String[info.length][5];
-        for(int i = 0; i< info.length; i++){
-            String[] s = info[i].split(" ");
-            infoStr[i] = s;
-        }
-
-        for(int i = 0; i < query.length;i++){
-            String[] s = query[i].split(" ");
-            for(int k = 0; k < infoStr.length; k++){
-                for(int z = 0 ; z < 5; z++){
-                    if(s[z])
-                        if(infoStr[k][z] != )
-                }
-            }
-            for(int j = 0; j < s.length; j++){
-                if(s[j] != "and"){
-
-                }
-            }
-        }
+//        infoStr = new String[info.length][5];
+//        for(int i = 0; i< info.length; i++){
+//            String[] s = info[i].split(" ");
+//            infoStr[i] = s;
+//        }
+//
+//        for(int i = 0; i < query.length;i++){
+//            String[] s = query[i].split(" ");
+//            for(int k = 0; k < infoStr.length; k++){
+//                for(int z = 0 ; z < 5; z++){
+//                    if(s[z])
+//                        if(infoStr[k][z] != )
+//                }
+//            }
+//            for(int j = 0; j < s.length; j++){
+//                if(s[j] != "and"){
+//
+//                }
+//            }
+//        }
 
         return answer;
     }
