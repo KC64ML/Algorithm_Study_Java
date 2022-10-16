@@ -133,9 +133,6 @@ public class BJ20056 {
                                 curResult[nextX][nextY].check = false;
                             }
                         }
-                    } else if () {
-                        // 2이상인 경우 체크한다.
-
                     }
                 }
             }
