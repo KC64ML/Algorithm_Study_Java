@@ -71,7 +71,5 @@ public class sw1979 {
 
         }
 
-
->>>>>>> 6f853b2b9a717a79d9c12e32783edf1796baf701
     }
 }
