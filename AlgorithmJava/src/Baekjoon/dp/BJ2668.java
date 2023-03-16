@@ -21,6 +21,7 @@ public class BJ2668 {
             if(start == end) return true;
             else return false;
         }
+        return false;
     }
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
