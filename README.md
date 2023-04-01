@@ -12,7 +12,7 @@ site address : [codeup](https://codeup.kr/problemsetsol.php?psid=33)
 
 ### 2. SWExpert(ssafy) + programmers + plzrun(basic algorithm)
 
-take ssafy training 👈 **(now)**
+take ssafy training 👈 **(now)** 
 
 ➡ [ssafy](https://swexpertacademy.com/main/main.do)
 
