@@ -12,6 +12,8 @@ public class Solution {
     static int n, m;
     static CodeTree[] codeTree;
     static int graph[][];
+    static int dist[][];
+    static int dir[][] = {{0,1},{-1, 0}, {1, 0}, {0, -1}};
 
     // 모두 도착했는지 확인
     static boolean isFinished() {
@@ -28,12 +30,38 @@ public class Solution {
         }
     }
 
-    static void bfs(){
+    static void bfs(int startX, int startY){
+        for(int i = 1; i <= n; i++) for(int j = 1; j <= n; j++)  dist[i][j] = 100000;
 
+        Queue<Integer> queue = new ArrayDeque<Integer>();
+        queue.add(startX);
+        queue.add(startY);
+        dist[startX][startY] = 0;
+
+        while(queue.size() > 0){
+            int curX = queue.poll();
+            int curY = queue.poll();
+
+            for(int i = 0; i < 4; i++){
+                int nx = curX + dir[i][0];
+                int ny = curY + dir[i][1];
+
+                if(!(1 <= nx & nx <=n && 1<= ny && ny <= n)) continue;
+                if(dist[nx][ny] != 100000) continue; // 이미 방문했기 때문에
+                if(graph[nx][ny] == -1) continue;
+                else dist[nx][ny] = dist[curX][curY] + 1;
+
+                queue.add(nx);
+                queue.add(ny);
+            }
+        }
     }
 
     static void movePerson(int idx){
         // 현재 위치를 기준으로 이동
+        bfs(codeTree[idx].curX, codeTree[idx].curY);
+
+        
     }
 
     static void initiate(int time){
@@ -76,6 +104,7 @@ public class Solution {
         // 0 : 빈공간
         // 2 : 편의점, 지나간 경우 : -1
         graph = new int[n + 1][n + 1];
+        dist = new int[n+1][n+1];
 
         for(int i = 1; i <= n; i++){
             st = new StringTokenizer(br.readLine());
