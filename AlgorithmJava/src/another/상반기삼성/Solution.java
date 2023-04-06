@@ -49,23 +49,65 @@ public class Solution {
                 if(!(1 <= nx & nx <=n && 1<= ny && ny <= n)) continue;
                 if(dist[nx][ny] != 100000) continue; // 이미 방문했기 때문에
                 if(graph[nx][ny] == -1) continue;
-                else dist[nx][ny] = dist[curX][curY] + 1;
-
+                dist[nx][ny] = dist[curX][curY] + 1;
                 queue.add(nx);
                 queue.add(ny);
             }
         }
     }
 
-    static void movePerson(int idx){
-        // 현재 위치를 기준으로 이동
-        bfs(codeTree[idx].curX, codeTree[idx].curY);
+    static boolean isArrived(int idx){
+        return codeTree[idx].curX == codeTree[idx].goalX && codeTree[idx].curY == codeTree[idx].curY;
+    }
 
-        
+    static void movePerson(int idx){
+        if(isArrived(idx)) return;
+
+        // 현재 위치를 기준으로 이동
+        bfs(codeTree[idx].goalX, codeTree[idx].goalY);
+
+        int minDist = 10000, minDir = -1;
+        System.out.println(codeTree[idx].curX + " " + codeTree[idx].curY);
+        // 상좌우하로 한번씩 조히한다.
+        for(int i = 0; i < 4; i++){
+            int nx = dir[i][0] + codeTree[idx].curX;
+            int ny = dir[i][1] + codeTree[idx].curY;
+            System.out.println("nx, ny : " + nx + " " + ny);
+            if(!(1 <= nx && nx <= n && 1 <= ny && ny <=n)) continue;
+            System.out.println("minDist : " + dist[nx][ny]);
+            System.out.println("minDist : " + minDist + " dist : " + dist[nx][ny]);
+            if(dist[nx][ny] < minDist){
+                minDist = dist[nx][ny];
+                minDir = i;
+            }
+        }
+
+        // 새로운 방향으로 업데이트
+        codeTree[idx].curX += dir[minDir][0];
+        codeTree[idx].curY += dir[minDir][1];
     }
 
     static void initiate(int time){
-        // 방문했는지 확인하기
+        // 방문했는지 확인하기 (현재 도착지점을 기점으로 거리 구함)
+        bfs(codeTree[time].goalX, codeTree[time].goalY);
+
+        // 가장 가까운 베이스 찾기
+        int minDist = 10000, minI = 0, minJ = 0;
+        for(int i = 1; i <= m; i++){
+            for(int j = 1; j <= m; j++){
+                // 베이스캠프가 아닌 위치는 무시
+                if(graph[i][j] != 1) continue;
+                if(dist[i][j] < minDist){
+                    minDist = dist[i][j];
+                    minI = i;
+                    minJ = j;
+                }
+            }
+        }
+
+        codeTree[time].curX = minI;
+        codeTree[time].curY = minJ;
+        graph[minI][minJ] = -1;
 
     }
 
@@ -116,8 +158,10 @@ public class Solution {
         // 도착지 편의점 위치 저장
         for(int i = 1; i <= m; i++){
             st = new StringTokenizer(br.readLine());
+            codeTree[i] = new CodeTree();
             codeTree[i].goalX = Integer.parseInt(st.nextToken());
             codeTree[i].goalY = Integer.parseInt(st.nextToken());
+            System.out.println(codeTree[i].goalX);
         }
 
         pro();
