@@ -16,5 +16,6 @@ public class Solution {
                 })
                 .collect(Collectors.joining(""))
                 .replaceAll("^0+", "0");
+                // 0이 반복해서 나타났다면 0 하나로 대체해라
     }
 }
