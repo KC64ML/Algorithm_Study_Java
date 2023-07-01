@@ -14,11 +14,11 @@ site address : [codeup](https://codeup.kr/problemsetsol.php?psid=33)
 
 take ssafy training
 
-➡ [ssafy](https://swexpertacademy.com/main/main.do)
+- [ssafy](https://swexpertacademy.com/main/main.do)
 
 go to programmers, Solve Steps 1 and 2 and 3 👈 **(now)**
 
-➡ [programmers](https://programmers.co.kr/learn/challenges)
+- [programmers](https://programmers.co.kr/learn/challenges)
 
 &nbsp;
 
