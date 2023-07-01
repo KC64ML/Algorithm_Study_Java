@@ -12,11 +12,11 @@ site address : [codeup](https://codeup.kr/problemsetsol.php?psid=33)
 
 ### 2. SWExpert(ssafy) + programmers + plzrun(basic algorithm)
 
-take ssafy training 👈 **(now)** 
+take ssafy training
 
 ➡ [ssafy](https://swexpertacademy.com/main/main.do)
 
-go to programmers, Solve Steps 1 and 2 👈 **(now)**
+go to programmers, Solve Steps 1 and 2 and 3 👈 **(now)**
 
 ➡ [programmers](https://programmers.co.kr/learn/challenges)
 
