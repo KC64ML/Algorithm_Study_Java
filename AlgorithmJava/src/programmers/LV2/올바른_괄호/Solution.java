@@ -1,34 +1,25 @@
 package programmers.LV2.올바른_괄호;
 
-import java.util.*;
+import java.util.Stack;
 
-class Solution {
+public class Solution {
     boolean solution(String s) {
-        boolean answer = true;
-
         Stack<Character> stack = new Stack<>();
 
-
-        for (char inS : s.toCharArray()) {
-            char curS = ' ';
-
-            if (inS == '(') {
-                stack.push(inS);
-            } else if (inS == ')' && stack.size() > 0) {
-                curS = stack.pop();
-                if (curS == '(') continue;
-                else {
-                    answer = false;
+        for(char c : s.toCharArray()){
+            switch(c) {
+                case '(':
+                    stack.push(c);
+                    break;
+                case ')':
+                {
+                    if(stack.isEmpty()) return false;
+                    stack.pop();
                     break;
                 }
-            } else {
-                answer = false;
-                break;
             }
         }
 
-        if (stack.size() > 0) answer = false;
-
-        return answer;
+        return stack.isEmpty();
     }
 }
