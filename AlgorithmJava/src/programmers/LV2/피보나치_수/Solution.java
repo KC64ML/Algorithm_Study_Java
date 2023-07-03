@@ -1,6 +1,6 @@
 package programmers.LV2.피보나치_수;
 
-class Solution {
+public class Solution {
     public int solution(int n) {
 
         int[] dp = new int[n + 1];
@@ -13,7 +13,6 @@ class Solution {
         }
 
 
-        
         return dp[n];
     }
 }
