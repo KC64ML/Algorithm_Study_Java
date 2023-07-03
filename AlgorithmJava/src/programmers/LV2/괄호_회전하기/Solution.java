@@ -20,7 +20,7 @@ public class Solution {
                 case '[':
                     stack.push(']');
                     break;
-                case ')', '}', ']':
+                case ')': case '}': case ']':
                     if(stack.isEmpty()) return false;
                     if(stack.pop() != c) return false;
             }
