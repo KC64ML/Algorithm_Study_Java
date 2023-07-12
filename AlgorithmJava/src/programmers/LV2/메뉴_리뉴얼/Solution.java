@@ -53,7 +53,7 @@ public class Solution {
         List<Set<String>> orderList = Arrays.stream(orders)
                 .map(String::chars)
                 .map(charStream -> charStream
-                        .mapToObj(menu -> String.valueOf((char) menu))
+                        .mapToObj(menu -> String.valueOf((char) menu)) // char값을 String으로 변경한다.
                         .collect(Collectors.toSet()))
                 .collect(Collectors.toList());
 
