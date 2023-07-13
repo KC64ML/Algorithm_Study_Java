@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 public class Solution {
     private void forEachKey(int index, String prefix, String[] tokens,
                             Consumer<String> action) {
+        // 점수 이전까지 입력받는다.
         if (index == tokens.length - 1) {
             action.accept(prefix);
             return;
@@ -38,7 +39,7 @@ public class Solution {
           "python frontend senior chicken 210",
           "python frontend senior chicken 150",
           "cpp backend senior pizza 260",
-          "java backend junior chicken 80",
+          "java backend junior chicken 80"A,
           "python backend senior chicken 50"
         };
 
