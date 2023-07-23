@@ -19,5 +19,6 @@ public class Solution3 {
             else end = mid - 1;
         }
         System.out.println(answer);
+        
     }
 }
