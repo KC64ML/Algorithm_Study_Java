@@ -8,7 +8,6 @@ import java.util.Arrays;
 
 public class Solution2 {
     public int solution(String skill, String[] skillTree) {
-        
         return (int)Arrays.stream(skillTree)
                 .map(p -> p.replaceAll("[^" + skill +"]", ""))
                 .filter(skill::startsWith)
