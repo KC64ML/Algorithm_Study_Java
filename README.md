@@ -16,14 +16,14 @@ take ssafy training
 
 - [ssafy](https://swexpertacademy.com/main/main.do)
 
-go to programmers, Solve Steps 1 and 2 and 3 👈 **(now)**
+go to programmers, Solve Steps 1 and 2 and 3 
 
 - [programmers](https://programmers.co.kr/learn/challenges)
 
 &nbsp;
 
 
-### 3. Solve previous questions in programmers
+### 3. Solve previous questions in programmers 👈 **(now)**
 
 1) kakao
 
