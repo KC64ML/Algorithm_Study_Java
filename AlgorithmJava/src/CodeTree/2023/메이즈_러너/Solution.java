@@ -61,18 +61,25 @@ public class Solution {
                     // 사람이 있는 위치라면 확인한다.
                     if(arr[ny][nx] == 100){
                         // 사람 위치 방문, 최단 거리라면, 위치 이동
-//                        System.out.println("ny : " + ny + " nx : " + nx);
-                        if(getCalculateStreet(nx, ny) == part.streetCnt){
+                        System.out.println("ny : " + ny + " nx : " + nx + " exit " + exitY + " " + exitX);
+                        System.out.println(getCalculateStreet(nx, ny) + " " + part.streetCnt);
+                        if(getCalculateStreet(nx, ny) == part.streetCnt + 1){
                             answer += 1;
-
+                            System.out.println("answer 추가");
                             // EXIT 위치가 아니라면 사람의 위치 업데이트
                             if(curY == exitY && curX == exitX) peopleCount--;
                             else arr[curY][curX] = 100;
                             arr[ny][nx] = 0;
+
+                            for(int k = 0 ; k < arr.length; k++){
+                                System.out.println(Arrays.toString(arr[k]));
+                            }
                         }
+                    }else{
+                        queue.add(new Participate(nx, ny, part.streetCnt + 1));
                     }
 
-                    queue.add(new Participate(nx, ny, part.streetCnt + 1));
+
                 }
             }
         }
@@ -107,18 +114,21 @@ public class Solution {
                     if(arr[ny][nx] == 100){
 
                         int curStreet = getCalculateStreet(nx, ny);
-                        System.out.println("nx, ny : " + nx + " " + ny + " curX, curY : " + curX + " " + curY);
-                        System.out.println("firstStree : " + firstStreet + " " + curStreet);
+                        System.out.println("거리 : " + curStreet);
+//                        System.out.println("nx, ny : " + nx + " " + ny + " curX, curY : " + curX + " " + curY);
+//                        System.out.println("firstStree : " + firstStreet + " " + curStreet);
                         if(firstStreet > curStreet){
                             firstStreet = curStreet;
                             firstX = nx;
                             firstY = ny;
+                            break;
                         }
                         else if(firstStreet == curStreet){
                             // 최단 거리가 같다면 y축 위, x 축 왼쪽
                             if(firstY > ny || (firstY == ny && firstX > nx)){
                                 firstX = nx;
                                 firstY = ny;
+                                break;
                             }
                         }
 
@@ -134,9 +144,9 @@ public class Solution {
 
         // x, y중 큰 값
         int squareLen = Math.max(Math.abs(firstX - exitX), Math.abs(firstY - exitY)) + 1;
-//        System.out.println("firstX, firstY : " + firstX + " " + firstY + " squareLen : " + squareLen);
-        int startX = Math.max(firstX, exitX) - squareLen;
-        int startY = Math.max(firstY, exitY) - squareLen;
+        System.out.println("firstX, firstY : " + firstX + " " + firstY + " squareLen : " + squareLen);
+        int startX = Math.max(firstX, exitX) - (squareLen - 1);
+        int startY = Math.max(firstY, exitY) - (squareLen - 1);
         if(startX < 0) startX = 0;
         if(startY < 0) startY = 0;
 
@@ -144,9 +154,9 @@ public class Solution {
     }
 
     private static int[][] deepCopy(int[][] copyArr){
-        int[][] testCase = new int[N][N];
+        int[][] testCase = new int[copyArr.length][copyArr[0].length];
 
-        for(int i = 0; i < N; i++){
+        for(int i = 0; i < copyArr.length; i++){
             testCase[i] = copyArr[i].clone();
         }
 
@@ -156,29 +166,34 @@ public class Solution {
     private static void rightRotate90(){
         int[] square = getfindSquareStartEndXYToBFS();
         int squareLen = square[2] - square[0];
-        System.out.println("x, y : " + square[0] + " " + square[1] + " exitX, exitY : " + exitX + " " + exitY);
-        // 행열 크기가 같다.
-        int[][] testCase = deepCopy(arr);
+        int startX = square[0];
+        int startY = square[1];
+        int[][] testCase = new int[squareLen][squareLen];
 
-        System.out.println("회전 " + squareLen);
-
-        for(int i = 0; i < squareLen; i++){
-            for(int j = 0; j < squareLen; j++){
-                int curX = square[0];
-                int curY = square[1];
-
-                // 꼭짓점 위치 변경
-                if(squareLen - j - 1 + curX == exitX && i + curY == exitY){
-                    exitX = j + curX;
-                    exitY = i + curY;
-                }
-
-                System.out.println((i + curY) + ", " + (j + curX) + " <= " + (squareLen - j - 1) + ", " + (i + curY));
-                arr[i + curY][j + curX] = testCase[squareLen - j - 1 + curX][i + curY];
+        for(int i = startY; i < startY + squareLen; i++){
+            for(int j = startX; j < startX + squareLen; j++){
+                testCase[i - startY][j - startX] = arr[i][j];
             }
         }
 
-        System.out.println("exitX, exitY : " + exitX + " " + exitY);
+        int[][] testCase2 = deepCopy(testCase);
+        for(int i = 0; i < squareLen; i++){
+            for(int j = 0; j < squareLen; j++){
+                testCase[i][j] = testCase2[squareLen - j - 1][i];
+            }
+        }
+
+        for(int i = startY; i < startY + squareLen; i++){
+            for(int j = startX; j < startX + squareLen; j++){
+                arr[i][j] = testCase[i - startY][j - startX];
+                if(1 <= arr[i][j] && arr[i][j] <= 9) arr[i][j] -= 1;
+                else if(arr[i][j] == -100){
+                    exitX = j;
+                    exitY = i;
+                }
+            }
+        }
+
     }
 
     private static void printXY(){
@@ -223,7 +238,7 @@ public class Solution {
         int row = Integer.parseInt(tokenizer.nextToken()) - 1;
         int col = Integer.parseInt(tokenizer.nextToken()) - 1;
 
-        // arr[row][col] = -100;
+         arr[row][col] = -100;
         exitX = col;
         exitY = row;
 
@@ -231,12 +246,12 @@ public class Solution {
         for(int i = 1; i <= K; i++){
             // 1. 참가자 조회
             movePeopleBfs();
-            printXY();
             if(peopleCount == 0) break;
 
             // 2. 회전
             rightRotate90();
-
+            System.out.println(i + " 번 결과");
+            System.out.println(exitY + " " + exitX);
             printXY();
         }
 
