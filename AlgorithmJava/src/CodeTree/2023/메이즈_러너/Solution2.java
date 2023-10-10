@@ -1,123 +1,201 @@
 package 메이즈_러너;
 
+
+import java.awt.*;
 import java.util.*;
-import java.io.*;
+
 
 public class Solution2 {
 
-    private static int N, M, R;
-    private static int[][] arr;
-    private static int maxIndex;
-    private static int[] operator;
+    private static class Pair {
+        public final int x, y;
 
-    private static int swap(int a, int b){
-        return a;
-    }
-    private static int[][] deepCopy(){
-        int[][] testCase = new int[maxIndex][maxIndex];
-
-        for(int i = 0; i < N; i++){
-            testCase[i] = arr[i].clone();
+        public Pair(int x, int y){
+            this.x = x;
+            this.y = y;
         }
+    };
+    static final int NM = 15;
+    static int[][] maze = new int[NM][NM];
+    static int N, K, moveCnt;
 
-        return testCase;
-    }
-    public static void main(String[] args) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-        StringTokenizer tokenizer = new StringTokenizer(reader.readLine());
-
-        N = Integer.parseInt(tokenizer.nextToken());
-        M = Integer.parseInt(tokenizer.nextToken());
-        R = Integer.parseInt(tokenizer.nextToken());
-
-        maxIndex = Math.max(N, M);
-        arr = new int[maxIndex][maxIndex];
-
-        for(int i = 0; i < N; i++){
-            tokenizer = new StringTokenizer(reader.readLine());
-            for(int j = 0; j < M; j++){
-                arr[i][j] = Integer.parseInt(tokenizer.nextToken());
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        input(scanner);
+        int kSize = K;
+        while (K-- > 0) {
+            System.out.println(kSize - K + " 번째 시작");
+            moveAll();
+            if (isFinish()) {
+                break;
             }
-        }
-
-        tokenizer = new StringTokenizer(reader.readLine());
-        int tokenCnt = tokenizer.countTokens();
-        operator = new int[tokenCnt];
-        for(int i = 0; i < tokenCnt; i++) {
-            operator[i] = Integer.parseInt(tokenizer.nextToken());
-        }
-
-        for(int i = 0; i < tokenCnt; i++){
-            int[][] testCase = deepCopy();
-            switch(operator[i]){
-                case 1:
-                    // 상하반전
-                    for(int row = 0; row < N / 2; row++){
-                        for(int col = 0; col < M; col++){
-                            arr[N - row - 1][col] = swap(arr[row][col],arr[row][col] = arr[N - row - 1][col]);
-                        }
-                    }
-                    break;
-                case 2:
-                    // 좌우반전
-                    for(int row = 0; row < N; row++){
-                        for(int col = 0; col < M / 2; col++){
-                            arr[row][M - col - 1] = swap(arr[row][col], arr[row][col] = arr[row][M - col - 1]);
-                        }
-                    }
-                    break;
-                case 3:
-                    // 90도 오른쪽 회전
-                    M = swap(N , N = M);
-                    for (int row = 0; row < N; row++) {
-                        for (int col = 0; col < M; col++) {
-                            arr[row][col] = testCase[M - col - 1][row];
-                        }
-                    }
-                    break;
-                case 4:
-                    // 90도 왼쪽 회전
-                    for(int row = 0; row < N; row++){
-                        for(int col = 0; col < M; col++){
-                            arr[M - col - 1][row] = testCase[row][col];
-                        }
-                    }
-                    M = swap(N, N = M);
-                    break;
-                case 5:
-                    // 1 -> 2, 2 -> 3, 3 -> 4, 4 -> 1
-                    for(int row = 0; row < N / 2; row++){
-                        for(int col = 0; col < M / 2; col++){
-                            arr[row][col + M / 2] = testCase[row][col];
-                            arr[row + N / 2][col + M / 2] = testCase[row][col + M / 2];
-                            arr[row + N / 2][col] = testCase[row + N / 2][col + M /2];
-                            arr[row][col] = testCase[row + N / 2][col];
-                        }
-                    }
-                    break;
-                case 6:
-                    // 1 -> 4, 4 -> 3, 3 -> 2, 2 -> 1
-                    for(int row = 0; row < N / 2; row++){
-                        for(int col = 0; col < M / 2; col++){
-                            arr[row + N / 2][col] = testCase[row][col];
-                            arr[row + N / 2][col + M / 2] = testCase[row + N / 2][col];
-                            arr[row][col + M / 2] = testCase[row + N / 2][col + M / 2];
-                            arr[row][col] = testCase[row][col + M / 2];
-                        }
-                    }
-
-                    break;
-            }
-        }
-
-        for(int i = 0; i < N; i++){
-            for(int j = 0; j < M; j++){
-                System.out.print(arr[i][j] + " ");
-            }
+            rotate();
             System.out.println();
-        }
 
-        reader.close();
+            for(int i = 1; i <= N; i++){
+                System.out.println(Arrays.toString(maze[i]));
+            }
+        }
+        output();
+    }
+
+    static void input(Scanner scanner) {
+        int M;
+        N = scanner.nextInt();
+        M = scanner.nextInt();
+        K = scanner.nextInt();
+        for (int i = 1; i <= N; i++) {
+            for (int j = 1; j <= N; j++) {
+                int x = scanner.nextInt();
+                maze[i][j] = -x;
+            }
+        }
+        for (int i = 1; i <= M; i++) {
+            int x = scanner.nextInt();
+            int y = scanner.nextInt();
+            maze[x][y]++;
+        }
+        int x = scanner.nextInt();
+        int y = scanner.nextInt();
+        maze[x][y] = -10;
+    }
+
+    static Pair findExit() {
+        for (int i = 1; i <= N; i++) {
+            for (int j = 1; j <= N; j++) {
+                if (maze[i][j] == -10) {
+                    return new Pair(i, j);
+                }
+            }
+        }
+        return null;
+    }
+
+    static final int[][] dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+
+    static void moveAll() {
+        int[][] newMaze = new int[NM][NM];
+        Pair ex = findExit();
+        for (int i = 1; i <= N; i++) {
+            for (int j = 1; j <= N; j++) {
+                if (maze[i][j] < 0) {
+                    newMaze[i][j] = maze[i][j];
+                    continue;
+                }
+                if (maze[i][j] == 0) {
+                    continue;
+                }
+                int curDist = Math.abs(i - ex.x) + Math.abs(j - ex.y);
+                int minDist = curDist, minI = 0, minJ = 0;
+                for (int k = 0; k < 4; k++) {
+                    int ni = i + dirs[k][0];
+                    int nj = j + dirs[k][1];
+                    if (ni < 1 || nj < 1 || ni > N || nj > N) continue;
+                    if (-9 <= maze[ni][nj] && maze[ni][nj] <= -1) continue;
+                    int dist = Math.abs(ni - ex.x) + Math.abs(nj - ex.y);
+                    if (minDist > dist) {
+                        minDist = dist;
+                        minI = ni;
+                        minJ = nj;
+                    }
+                }
+                if (minDist == curDist) {
+                    newMaze[i][j] += maze[i][j];
+                    continue;
+                }
+                moveCnt += maze[i][j];
+                if (maze[minI][minJ] != -10) {
+                    newMaze[minI][minJ] += maze[i][j];
+                }
+            }
+        }
+        for (int i = 1; i <= N; i++) {
+            System.arraycopy(newMaze[i], 0, maze[i], 0, N + 1);
+        }
+    }
+
+    static void subRotate(int x, int y, int d) {
+        int[][] a = new int[NM][NM];
+        int[][] b = new int[NM][NM];
+        System.out.println("rotate : " + x + " " + y + " d : " + d);
+        for (int i = x; i <= x + d; i++) {
+            for (int j = y; j <= y + d; j++) {
+                a[i - x + 1][j - y + 1] = maze[i][j];
+            }
+        }
+        int n = d + 1;
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (-9 <= a[i][j] && a[i][j] <= -1) {
+                    a[i][j]++;
+                }
+                b[j][n + 1 - i] = a[i][j];
+            }
+        }
+        for (int i = x; i <= x + d; i++) {
+            for (int j = y; j <= y + d; j++) {
+                maze[i][j] = b[i - x + 1][j - y + 1];
+            }
+        }
+    }
+
+    static void rotate() {
+        int minDist = 1000000;
+        Point point = new Point();
+
+        Pair ex = findExit();
+        for (int i = 1; i <= N; i++) {
+            for (int j = 1; j <= N; j++) {
+                if (maze[i][j] <= 0) continue;
+                int dist = Math.max(Math.abs(i - ex.x), Math.abs(j - ex.y));
+                minDist = Math.min(minDist, dist);
+            }
+        }
+        int bestRow = 0, bestCol = 0;
+        for (int i = 1; i <= N - minDist; i++) {
+            for (int j = 1; j <= N - minDist; j++) {
+                boolean flagExit = false, flagPerson = false;
+                System.out.println("i, j : " + i + " " + j + " 시작");
+
+                for (int r = i; r <= i + minDist; r++) {
+                    for (int c = j; c <= j + minDist; c++) {
+
+                        System.out.println(r + " " + c + " " + maze[r][c] + " distance : " + minDist);
+                        if (maze[r][c] == -10) flagExit = true;
+                        if (maze[r][c] > 0) flagPerson = true;
+                    }
+                }
+
+
+                if (flagExit && flagPerson) {
+                    bestRow = i;
+                    bestCol = j;
+                    System.out.println("실행");
+                    break;
+                }
+
+                System.out.println();
+            }
+            if (bestRow != 0) break;
+        }
+        subRotate(bestRow, bestCol, minDist);
+    }
+
+    static void output() {
+        System.out.println(moveCnt);
+        Pair ex = findExit();
+        System.out.println(ex.x + " " + ex.y);
+    }
+
+    static boolean isFinish() {
+        for (int i = 1; i <= N; i++) {
+            for (int j = 1; j <= N; j++) {
+                if (maze[i][j] > 0) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
+

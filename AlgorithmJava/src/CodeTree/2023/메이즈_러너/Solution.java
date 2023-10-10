@@ -3,25 +3,13 @@ package 메이즈_러너;
 import java.util.*;
 import java.io.*;
 
+
 public class Solution {
-
-    private static class Participate{
-        public final int x;
-        public final int y;
-        public final int streetCnt;
-
-        public Participate(int x, int y, int streetCnt){
-            this.x = x;
-            this.y = y;
-            this.streetCnt = streetCnt;
-        }
-    }
 
     private static int N, M, K;
     private static int[][] arr;
     private static int exitX, exitY;
-    private static int answer;
-    private static int peopleCount;
+    private static int moveStreetSum;
 
     private static int[] dx = {0, 0, -1 ,1};
     private static int[] dy = {-1, 1, 0, 0};
@@ -35,174 +23,231 @@ public class Solution {
         return Math.abs(x - exitX) + Math.abs(y - exitY);
     }
 
-    // 사람들 위치 이동
-    private static void movePeopleBfs(){
-        Queue<Participate> queue = new LinkedList<>();
-        queue.add(new Participate(exitX, exitY, 0));
-        boolean[][] visited = new boolean[N][N];
-        visited[exitY][exitX] = true;
-
-        while(queue.size() > 0){
-            Participate part = queue.poll();
-            int curX = part.x;
-            int curY = part.y;
-
-            for(int i = 0; i < 4; i++){
-                int nx = curX + dx[i];
-                int ny = curY + dy[i];
-
-                if(isWithInRange(nx, ny)){
-                    if(visited[ny][nx]) continue;
-                    visited[ny][nx] = true;
-
-                    // 벽이 있는 위치라면 pass
-                    if(1 <= arr[ny][nx] && arr[ny][nx] < 10) continue;
-
-                    // 사람이 있는 위치라면 확인한다.
-                    if(arr[ny][nx] == 100){
-                        // 사람 위치 방문, 최단 거리라면, 위치 이동
-                        System.out.println("ny : " + ny + " nx : " + nx + " exit " + exitY + " " + exitX);
-                        System.out.println(getCalculateStreet(nx, ny) + " " + part.streetCnt);
-                        if(getCalculateStreet(nx, ny) == part.streetCnt + 1){
-                            answer += 1;
-                            System.out.println("answer 추가");
-                            // EXIT 위치가 아니라면 사람의 위치 업데이트
-                            if(curY == exitY && curX == exitX) peopleCount--;
-                            else arr[curY][curX] = 100;
-                            arr[ny][nx] = 0;
-
-                            for(int k = 0 ; k < arr.length; k++){
-                                System.out.println(Arrays.toString(arr[k]));
-                            }
-                        }
-                    }else{
-                        queue.add(new Participate(nx, ny, part.streetCnt + 1));
-                    }
-
-
-                }
-            }
-        }
-    }
-
-    private static int[] getfindSquareStartEndXYToBFS(){
-        // bfs로 현재 가장가까운 사람 위치를 찾는다.
-        Queue<Participate> queue = new LinkedList<>();
-        queue.add(new Participate(exitX, exitY, 0));
-        boolean[][] visited = new boolean[N][N];
-        visited[exitY][exitX] = true;
-        int firstX = exitX;
-        int firstY = exitY;
-        int firstStreet = Integer.MAX_VALUE;
-
-        while(queue.size() > 0){
-            Participate part = queue.poll();
-            int curX = part.x;
-            int curY = part.y;
-
-            if(firstStreet < part.streetCnt) continue;
-
-            for(int i = 0; i < 4; i++){
-                int nx = curX + dx[i];
-                int ny = curY + dy[i];
-
-                if(isWithInRange(nx, ny)){
-                    if(visited[ny][nx]) continue;
-                    visited[ny][nx] = true;
-
-                    // 사람이 있는 위치라면 확인한다.
-                    if(arr[ny][nx] == 100){
-
-                        int curStreet = getCalculateStreet(nx, ny);
-                        System.out.println("거리 : " + curStreet);
-//                        System.out.println("nx, ny : " + nx + " " + ny + " curX, curY : " + curX + " " + curY);
-//                        System.out.println("firstStree : " + firstStreet + " " + curStreet);
-                        if(firstStreet > curStreet){
-                            firstStreet = curStreet;
-                            firstX = nx;
-                            firstY = ny;
-                            break;
-                        }
-                        else if(firstStreet == curStreet){
-                            // 최단 거리가 같다면 y축 위, x 축 왼쪽
-                            if(firstY > ny || (firstY == ny && firstX > nx)){
-                                firstX = nx;
-                                firstY = ny;
-                                break;
-                            }
-                        }
-
-                    }else {
-                        // 사람이 있는 위치가 아니면 queue에 삽입한다.
-                        queue.add(new Participate(nx, ny, part.streetCnt + 1));
-                    }
-
-
-                }
+    private static int[] findExitXY(){
+        for(int i = 0; i < N; i++){
+            for(int j = 0; j < N; j++){
+                if(arr[i][j] == -10) return new int[]{i, j};
             }
         }
 
-        // x, y중 큰 값
-        int squareLen = Math.max(Math.abs(firstX - exitX), Math.abs(firstY - exitY)) + 1;
-        System.out.println("firstX, firstY : " + firstX + " " + firstY + " squareLen : " + squareLen);
-        int startX = Math.max(firstX, exitX) - (squareLen - 1);
-        int startY = Math.max(firstY, exitY) - (squareLen - 1);
-        if(startX < 0) startX = 0;
-        if(startY < 0) startY = 0;
-
-        return new int[] {startX, startY, startX + squareLen, startY + squareLen};
+        return new int[]{0, 0};
     }
 
-    private static int[][] deepCopy(int[][] copyArr){
-        int[][] testCase = new int[copyArr.length][copyArr[0].length];
+    private static boolean isFinish(){
+        for(int i = 0; i < N; i++){
+            for(int j = 0; j < N; j++){
+                if(arr[i][j] > 0) return false;
+            }
+        }
 
-        for(int i = 0; i < copyArr.length; i++){
-            testCase[i] = copyArr[i].clone();
+        return true;
+    }
+
+    private static int[][] deepCopy(int[][] copytestCase){
+        int[][] testCase = new int[copytestCase.length][copytestCase[0].length];
+
+        for(int i = 0; i < copytestCase.length; i++){
+            testCase[i] = copytestCase[i].clone();
         }
 
         return testCase;
     }
 
-    private static void rightRotate90(){
-        int[] square = getfindSquareStartEndXYToBFS();
-        int squareLen = square[2] - square[0];
-        int startX = square[0];
-        int startY = square[1];
-        int[][] testCase = new int[squareLen][squareLen];
-
-        for(int i = startY; i < startY + squareLen; i++){
-            for(int j = startX; j < startX + squareLen; j++){
-                testCase[i - startY][j - startX] = arr[i][j];
-            }
-        }
-
-        int[][] testCase2 = deepCopy(testCase);
-        for(int i = 0; i < squareLen; i++){
-            for(int j = 0; j < squareLen; j++){
-                testCase[i][j] = testCase2[squareLen - j - 1][i];
-            }
-        }
-
-        for(int i = startY; i < startY + squareLen; i++){
-            for(int j = startX; j < startX + squareLen; j++){
-                arr[i][j] = testCase[i - startY][j - startX];
-                if(1 <= arr[i][j] && arr[i][j] <= 9) arr[i][j] -= 1;
-                else if(arr[i][j] == -100){
-                    exitX = j;
-                    exitY = i;
-                }
-            }
-        }
-
-    }
-
-    private static void printXY(){
+    private static void printStreet(){
         for(int i = 0; i < N; i++){
             System.out.println(Arrays.toString(arr[i]));
         }
 
         System.out.println();
     }
+    // 배열이 위치를 이동한다.
+    private static void move(){
+
+        // 복사 배열
+        int[][] newArr = new int[N][N];
+        int[] exitArr = findExitXY();
+        exitY = exitArr[0];
+        exitX = exitArr[1];
+
+        // System.out.println("exit : " + exitY + " " + exitX);
+
+        // 배열이 돌면서 참가자가 이동할 수 있다면 이동한다.
+        for(int i = 0; i < N; i++){
+            for(int j = 0; j < N; j++){
+                // exit이거나 벽인경우 pass 한다.
+//                System.out.println(i + " " + j);
+                if(arr[i][j] < 0){
+                    newArr[i][j] = arr[i][j];
+                    continue;
+                }
+                // 빈 공간이거나 출구라면 pass
+                if(arr[i][j] == 0) continue;
+
+                // 거리를 구한다.
+                int distance = getCalculateStreet(j, i);
+                int minDistance = distance;
+                int minX = 0, minY = 0;
+                // 상하좌우 움직이면서 다음번째가 최단 거리보다 작은 값이라면 update
+                for(int d = 0; d < 4; d++){
+                    int ny = dy[d] + i;
+                    int nx = dx[d] + j;
+
+                    // 범위 밖이거나, 벽이라면 continue
+                    if(!isWithInRange(nx, ny)) continue;
+                    if(-9 <= arr[ny][nx] && arr[ny][nx] <= -1) continue;
+
+                    int curDistance = getCalculateStreet(nx, ny);
+                    // System.out.println(i + " " + j + " " + " ny : " + ny + " nx: " + nx +  " 거리 : " + curDistance);
+
+                    // 최단 거리라면 업데이트
+                    if(minDistance > curDistance){
+                        minX = nx;
+                        minY = ny;
+                        minDistance = curDistance;
+                        // System.out.println(i + " " + j + " 실행 ");
+                        // break;
+                    }
+
+                }
+
+
+                // 다음 방문할 곳이 없으면 새로운 배열에 복사
+                if(minDistance == distance){
+                    newArr[i][j] += arr[i][j];
+                    continue;
+                }
+
+                moveStreetSum += arr[i][j];
+                // 도착지점이면 continue;
+                // 아니면 값 변경
+                if(!(minY == exitY && minX == exitX)){
+                    newArr[minY][minX] += arr[i][j];
+                }
+
+            }
+
+            // for(int k = 0; k < N; k++){
+            //     System.out.print(Arrays.toString(arr[k]));
+            // }
+            // System.out.println();
+
+        }
+
+        for(int i = 0 ; i < N; i++){
+            for(int j = 0; j < N; j++){
+                arr[i][j] = newArr[i][j];
+            }
+        }
+    }
+
+    // 2. 90도 회전
+    private static void rotate90(){
+
+        int distance = 1000000;
+        int[] exitArr = findExitXY();
+        exitY = exitArr[0];
+        exitX = exitArr[1];
+
+        // (1) EXIT에서 제일 가까운 사람 위치를 찾는다.
+        // (2) 좌상단 r 우선, 이후 c 우선
+        for(int i = 0; i < N; i++){
+            for(int j = 0; j < N; j++){
+                if(arr[i][j] > 0){
+                    int curDistance = Math.max(Math.abs(i - exitY), Math.abs(j - exitX));
+//                     System.out.println(j + " " + i +  " 과 " + exitX + " " + exitY + " 은 " + curDistance);
+                    distance = Math.min(distance, curDistance);
+                }
+            }
+        }
+
+
+        // 시작위치를 찾는다.
+        int startRow = 0;
+        int startCol = 0;
+//        System.out.println("시작");
+        Loop1:
+        for(int i = 0; i < N - distance; i++){
+            for(int j = 0; j < N - distance; j++){
+//                System.out.println("i, j : " + i + " " + j + " 시작");
+                // 내부에 exit와 참가자가 존재해야함
+                boolean isInExitCheck = false;
+                boolean isInPeopleCheck = false;
+                for(int row = i; row <= i + distance; row++) {
+                    for (int col = j; col <= j + distance; col++) {
+
+//                        System.out.println(row + " " + col + " " + arr[row][col] + " distance : " + distance);
+                        // exit가 존재한다면
+                        if (arr[row][col] == -10) isInExitCheck = true;
+                        if (arr[row][col] > 0) isInPeopleCheck = true;
+                    }
+                }
+
+//                System.out.println();
+
+                if(isInExitCheck && isInPeopleCheck){
+                    startRow = i;
+                    startCol = j;
+//                    System.out.println("통과");
+                    break Loop1;
+                }
+
+//                System.out.println();
+            }
+        }
+
+        rightRotate90(startRow, startCol, distance);
+    }
+
+
+
+    private static void rightRotate90(int row, int col, int distance){
+        int[][] testCase = new int[distance + 1][distance + 1];
+
+//         System.out.println(row + " " + col + " " + distance);
+
+        for(int i = row; i <= row + distance; i++){
+            for(int j = col; j <= col + distance; j++){
+                // System.out.println(i + " " + j);
+                testCase[i - row][j - col] = arr[i][j];
+            }
+        }
+
+
+        int[][] testCase2 = deepCopy(testCase);
+
+        // System.out.println("이전");
+        // for(int i = 0 ; i < distance; i++){
+        //     System.out.println(Arrays.toString(testCase[i]));
+        // }
+        // System.out.println();
+
+        // System.out.println("체크하는 구간");
+        int disNumber = distance + 1;
+        for(int i = 0; i < disNumber; i++){
+            for(int j = 0; j < disNumber; j++){
+                testCase[i][j] = testCase2[disNumber - j - 1][i];
+            }
+        }
+
+//        for(int i = 0 ; i < disNumber; i++){
+//            System.out.println(Arrays.toString(testCase[i]));
+//        }
+//        System.out.println();
+//
+//         for(int i = 0 ; i < disNumber; i++){
+//             System.out.println(Arrays.toString(testCase2[i]));
+//         }
+//         System.out.println();
+
+        for(int i = row; i <= row + distance; i++){
+            for(int j = col; j <= col + distance; j++){
+                arr[i][j] = testCase[i - row][j - col];
+
+                if(-9 <= arr[i][j] && arr[i][j] <= -1) arr[i][j] += 1;
+            }
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         // 여기에 코드를 작성해주세요.
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -214,23 +259,22 @@ public class Solution {
 
         arr = new int[N][N];
 
+        // 벽과 빈칸 입력
         for(int i = 0; i < N; i++){
             tokenizer = new StringTokenizer(reader.readLine());
             for(int j = 0; j < N; j++){
-                arr[i][j] = Integer.parseInt(tokenizer.nextToken());
+                arr[i][j] = Integer.parseInt(tokenizer.nextToken()) * -1;
             }
         }
 
-        // 100 : 사람 위치
+        // -10 : exit, -9 ~ -1 : 벽, 0 : 빈 곳, 1이상 : 사람 있는 곳
         for(int i = 0; i < M; i++){
             tokenizer = new StringTokenizer(reader.readLine());
             int row = Integer.parseInt(tokenizer.nextToken()) - 1;
             int col = Integer.parseInt(tokenizer.nextToken()) - 1;
 
-            arr[row][col] = 100;
+            arr[row][col] += 1;
         }
-
-        peopleCount = M;
 
         tokenizer = new StringTokenizer(reader.readLine());
 
@@ -238,24 +282,29 @@ public class Solution {
         int row = Integer.parseInt(tokenizer.nextToken()) - 1;
         int col = Integer.parseInt(tokenizer.nextToken()) - 1;
 
-         arr[row][col] = -100;
-        exitX = col;
-        exitY = row;
+        arr[row][col] = -10;
 
         // M개수가 0개 일 때까지 반복
         for(int i = 1; i <= K; i++){
+//             System.out.println(i + " 번째 시작");
             // 1. 참가자 조회
-            movePeopleBfs();
-            if(peopleCount == 0) break;
+            move();
 
+            if(isFinish()) break;
+
+//             printStreet();
             // 2. 회전
-            rightRotate90();
-            System.out.println(i + " 번 결과");
-            System.out.println(exitY + " " + exitX);
-            printXY();
+            rotate90();
+
+//             printStreet();
         }
 
-        System.out.println(answer);
+        int[] exitArr = findExitXY();
+        exitY = exitArr[0] + 1;
+        exitX = exitArr[1] + 1;
+
+        System.out.println(moveStreetSum);
+        System.out.println(exitY + " " + exitX);
 
         reader.close();
     }
