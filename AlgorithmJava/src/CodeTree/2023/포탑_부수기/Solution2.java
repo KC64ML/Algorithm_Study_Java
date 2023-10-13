@@ -1,297 +1,333 @@
 package 포탑_부수기;
 
+import java.io.*;
 import java.util.*;
 
-class Pair {
-    int x, y;
-
-    public Pair(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-}
-
-// class turret을 정의해 관리합니다.
-class Turret implements Comparable<Turret> {
-    int x, y, r, p;
-
-    public Turret(int x, int y, int r, int p) {
-        this.x = x;
-        this.y = y;
-        this.r = r;
-        this.p = p;
-    }
-
-    // turret의 약함, 강함 우선순위에 맞게 정렬함수를 만들어줍니다.
-    public int compareTo(Turret t) {
-        // 양수라면 오름차순, 내림차순
-        if(this.p != t.p) return this.p - t.p;
-        if(this.r != t.r) return t.r - this.r;
-        if(this.x + this.y != t.x + t.y) return (t.x + t.y) - (this.x + this.y);
-        return t.y - this.y;
-    }
-};
-
 public class Solution2 {
-    public static final int MAX_N = 10;
 
-    public static int[] dx = new int[]{0, 1, 0, -1};
-    public static int[] dy = new int[]{1, 0, -1, 0};
-    public static int[] dx2 = new int[]{0, 0, 0, -1, -1, -1, 1, 1, 1};
-    public static int[] dy2 = new int[]{0, -1, 1, 0, -1, 1, 0, -1, 1};
+    private static int N, M, K;
+    private static int[][] attackArr;
+    private static int[][] timeArr;
+    private static int countAttacker;
 
-    public static int n, m, k;
-    public static int turn;
+    // 우 하 좌 상
+    private static int[] dx = {1, 0, -1, 0};
+    private static int[] dy = {0, 1, 0, -1};
+    private static int[][] dxy = {{-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}};
+    private static boolean[][] visitedAttack;
 
-    // 현재 포탑들이 가진 힘과 언제 각성했는지 기록해줍니다.
-    public static int[][] board;
-    public static int[][] rec = new int[MAX_N][MAX_N];
-
-    // 빛의 공격을 할 때 방문 여부와 경로 방향을 기록해줍니다.
-    public static boolean[][] vis = new boolean[MAX_N][MAX_N];
-    public static int[][] backX = new int[MAX_N][MAX_N];
-    public static int[][] backY = new int[MAX_N][MAX_N];
-
-    // 공격과 무관했는지 여부를 저장합니다.
-    public static boolean[][] isActive = new boolean[MAX_N][MAX_N];
-
-    // 살아있는 포탑들을 관리합니다.
-    public static ArrayList<Turret> liveTurret = new ArrayList<>();
-
-    // 턴을 진행하기 전 필요한 전처리를 정리해줍니다.
-    public static void init() {
-        turn++;
-        for(int i = 0; i < n; i++)
-            for(int j = 0; j < m; j++) {
-                vis[i][j] = false;
-                isActive[i][j] = false;
+    private static int[] findMinXY(){
+        int number = Integer.MAX_VALUE;
+        int minI = 0;
+        int minJ = 0;
+        for(int i = 0 ; i < N; i++){
+            for(int j = 0; j < M; j++){
+                if(attackArr[i][j] == 0) continue;
+                if(attackArr[i][j] < number){
+                    minI = i;
+                    minJ = j;
+                    number = attackArr[i][j];
+                }
             }
+        }
+        return new int[]{minI, minJ};
     }
 
-    // 각성을 진행합니다.
-    // 각성을 하면 가장 약한 포탑이 n + m만큼 강해집니다.
-    public static void awake() {
-        // 우선순위에 맞게 현재 살아있는 포탑들을 정렬해줍니다.
-        Collections.sort(liveTurret);
-
-        // 가장 약한 포탑을 찾아 n + m만큼 더해주고,
-        // isActive와 liveTurret 배열도 갱신해줍니다.
-        Turret weakTurret = liveTurret.get(0);
-        int x = weakTurret.x;
-        int y = weakTurret.y;
-
-        board[x][y] += n + m;
-        rec[x][y] = turn;
-        weakTurret.p = board[x][y];
-        weakTurret.r = rec[x][y];
-        isActive[x][y] = true;
-
-        liveTurret.set(0, weakTurret);
-    }
-
-    // 레이저 공격을 진행합니다.
-    public static boolean laserAttack() {
-        // 기존에 정렬된 가장 앞선 포탑이
-        // 각성한 포탑입니다.
-        Turret weakTurret = liveTurret.get(0);
-        int sx = weakTurret.x;
-        int sy = weakTurret.y;
-        int pow = weakTurret.p;
-
-        // 기존에 정렬된 가장 뒤 포탑이
-        // 각성한 포탑을 제외한 포탑 중 가장 강한 포탑입니다.
-        Turret strongTurret = liveTurret.get(liveTurret.size() - 1);
-        int ex = strongTurret.x;
-        int ey = strongTurret.y;
-
-        // bfs를 통해 최단경로를 관리해줍니다.
-        Queue<Pair> q = new LinkedList<>();
-        vis[sx][sy] = true;
-        q.add(new Pair(sx, sy));
-
-        // 가장 강한 포탑에게 도달 가능한지 여부를 canAttack에 관리해줍니다.
-        boolean canAttack = false;
-
-        while(!q.isEmpty()) {
-            int x = q.peek().x;
-            int y = q.peek().y;
-            q.poll();
-
-            // 가장 강한 포탑에게 도달할 수 있다면
-            // 바로 멈춥니다.
-            if(x == ex && y == ey) {
-                canAttack = true;
-//                System.out.println("공격선공");
-                break;
+    private static int[] findMaxXY(){
+        int number = 0;
+        int maxI = 0;
+        int maxJ = 0;
+        for(int i = 0 ; i < N; i++){
+            for(int j = 0; j < M; j++){
+                if(attackArr[i][j] > number){
+                    maxI = i;
+                    maxJ = j;
+                    number = attackArr[i][j];
+                }
             }
+        }
+        return new int[]{maxI, maxJ};
+    }
+    private static int[] selectionAttack(){
+        int[] findXY = findMinXY();
+        int minAttackX = findXY[1];
+        int minAttackY = findXY[0];
+        // printTime();
+        // System.out.println("가장 작은 인덱스 : " + minAttackY + " " + minAttackX);
 
-            // 각각 우, 하, 좌, 상 순서대로 방문하며 방문 가능한 포탑들을 찾고
-            // queue에 저장해줍니다.
-            for(int dir = 0; dir < 4; dir++) {
-                int nx = (x + dx[dir] + n) % n;
-                int ny = (y + dy[dir] + m) % m;
+        for(int i = 0; i < N; i++){
+            for(int j = 0; j < M; j++){
+                // 0인 경우 제외
+                if(attackArr[i][j] == 0) continue;
 
-                // 이미 방문한 포탑이라면 넘어갑니다.
-                if(vis[nx][ny])
-                    continue;
-
-                // 벽이라면 넘어갑니다.
-                if(board[nx][ny] == 0)
-                    continue;
-
-                vis[nx][ny] = true;
-                backX[nx][ny] = x;
-                backY[nx][ny] = y;
-                q.add(new Pair(nx, ny));
+                if(attackArr[i][j] < attackArr[minAttackY][minAttackX]){
+                    // (1) 1-1
+                    minAttackX = j;
+                    minAttackY = i;
+                }else if(attackArr[i][j] == attackArr[minAttackY][minAttackX]
+                        && timeArr[i][j] > timeArr[minAttackY][minAttackX]){
+                    // (2) 1-2
+                    minAttackX = j;
+                    minAttackY = i;
+                }else if(attackArr[i][j] == attackArr[minAttackY][minAttackX]
+                        && timeArr[i][j] == timeArr[minAttackY][minAttackX]
+                        && (i + j) > (minAttackY + minAttackX)){
+                    // (3) 1-3
+                    minAttackX = j;
+                    minAttackY = i;
+                }else if(attackArr[i][j] == attackArr[minAttackY][minAttackX]
+                        && timeArr[i][j] == timeArr[minAttackY][minAttackX]
+                        && (i + j) == (minAttackY + minAttackX)
+                        && j > minAttackX){
+                    // (4) 1-4
+                    minAttackX = j;
+                    minAttackY = i;
+                }
             }
         }
 
-        // 만약 도달 가능하다면 공격을 진행합니다.
-        if(canAttack) {
-            // 우선 가장 강한 포탑에게는 pow만큼의 공격을 진행합니다.
-            board[ex][ey] -= pow;
-            if(board[ex][ey] < 0)
-                board[ex][ey] = 0;
-            isActive[ex][ey] = true;
+        // System.out.println("공격자 포탑 : " + minAttackY + " " + minAttackX);
+        return new int[]{minAttackX, minAttackY};
+    }
+    private static int[] findToTarget(){
+        int[] findXY = findMaxXY();
+        int maxAttackX = findXY[1];
+        int maxAttackY = findXY[0];
+        // System.out.println("시작값 : " +  maxAttackY + " " + maxAttackX);
 
-            // 기존의 경로를 역추적하며
-            // 경로 상에 있는 모든 포탑에게 pow / 2만큼의 공격을 진행합니다.
-            int cx = backX[ex][ey];
-            int cy = backY[ex][ey];
+        for(int i = 0; i < N; i++){
+            for(int j = 0; j < M; j++){
+                // 0인 경우 제외
+                if(attackArr[i][j] == 0) continue;
 
-            while(!(cx == sx && cy == sy)) {
-                board[cx][cy] -= pow / 2;
-                if(board[cx][cy] < 0)
-                    board[cx][cy] = 0;
-                isActive[cx][cy] = true;
-
-                int nextCx = backX[cx][cy];
-                int nextCy = backY[cx][cy];
-
-                cx = nextCx;
-                cy = nextCy;
+                if(attackArr[i][j] > attackArr[maxAttackY][maxAttackX]){
+                    // (1) 2-1
+                    maxAttackY = j;
+                    maxAttackY = i;
+                }else if(attackArr[i][j] == attackArr[maxAttackY][maxAttackX]
+                        && timeArr[i][j] < timeArr[maxAttackY][maxAttackX]){
+                    // (2) 1-2
+                    maxAttackX = j;
+                    maxAttackY = i;
+                }else if(attackArr[i][j] == attackArr[maxAttackY][maxAttackX]
+                        && timeArr[i][j] == timeArr[maxAttackY][maxAttackX]
+                        && (i + j) < (maxAttackY + maxAttackX)){
+                    // (3) 1-3
+                    maxAttackX = j;
+                    maxAttackY = i;
+                }else if(attackArr[i][j] == attackArr[maxAttackY][maxAttackX]
+                        && timeArr[i][j] == timeArr[maxAttackY][maxAttackX]
+                        && (i + j) == (maxAttackY + maxAttackX)
+                        && j < maxAttackX){
+                    // (4) 1-4
+                    maxAttackX = j;
+                    maxAttackY = i;
+                }
             }
         }
 
-        // 공격을 성공했는지 여부를 반환합니다.
-        return canAttack;
+        // System.out.println("공격자 대상 포탑 : " + maxAttackY + " " + maxAttackX);
+        return new int[]{maxAttackX, maxAttackY};
     }
+    private static boolean laserAttack(int[] minAttackArr, int[] maxAttackArr, int time){
+        Queue<Integer> queue = new LinkedList<>();
+        // 1, 2, 3, 4
+        int[][] direction = new int[N][M];
+        queue.add(minAttackArr[0]);
+        queue.add(minAttackArr[1]);
 
-    // 레이저 공격을 하지 못했다면 폭탄 공격을 진행합니다.
-    public static void bombAttack() {
-        // 기존에 정렬된 가장 앞선 포탑이
-        // 각성한 포탑입니다.
-        Turret weakTurret = liveTurret.get(0);
-        int sx = weakTurret.x;
-        int sy = weakTurret.y;
-        int pow = weakTurret.p;
 
-        // 기존에 정렬된 가장 뒤 포탑이
-        // 각성한 포탑을 제외한 포탑 중 가장 강한 포탑입니다.
-        Turret strongTurret = liveTurret.get(liveTurret.size() - 1);
-        int ex = strongTurret.x;
-        int ey = strongTurret.y;
+        while(queue.size() > 0){
+            int curX = queue.poll();
+            int curY = queue.poll();
 
-        // 가장 강한 포탑의 3 * 3 범위를 모두 탐색하며
-        // 각각에 맞는 공격을 진행합니다.
-        for(int dir = 0; dir < 9; dir++) {
-            int nx = (ex + dx2[dir] + n) % n;
-            int ny = (ey + dy2[dir] + m) % m;
+            if(curX == maxAttackArr[0] && curY == maxAttackArr[1]){
+                // 도착했을 때
+                // 역방향 저장 (방향 1, 2, 3, 4 저장되어 있다.)
+                int d = direction[curY][curX] - 1;
+                visitedAttack[curY][curX] = true;
+                // timeArr[curY][curX] = time;
 
-            // 각성한 포탑 자기 자신일 경우 넘어갑니다.
-            if(nx == sx && ny == sy)
-                continue;
+                ArrayList<Integer> result = new ArrayList<>();
+                result.add(curX);
+                result.add(curY);
+                int nextX = curX;
+                int nextY = curY;
 
-            // 가장 강한 포탑일 경우 pow만큼의 공격을 진행합니다.
-            if(nx == ex && ny == ey) {
-                board[nx][ny] -= pow;
-                if(board[nx][ny] < 0)
-                    board[nx][ny] = 0;
-                isActive[nx][ny] = true;
+                while(!(nextX == minAttackArr[0] && nextY == minAttackArr[1])){
+                    nextX = (nextX + dx[d]) % M;
+                    nextY = (nextY + dy[d]) % N;
+
+                    if(nextX < 0) nextX = M - 1;
+                    if(nextY < 0) nextY = N - 1;
+                    // timeArr[nextY][nextX] = time;
+                    visitedAttack[nextY][nextX] = true;
+                    result.add(nextX);
+                    result.add(nextY);
+
+                    d = direction[nextY][nextX] - 1;
+                }
+                Collections.reverse(result);
+                // 모든 방향을 찾았다면
+                for(int i = 2; i < result.size() - 2; i += 2){
+                    int ny = result.get(i);
+                    int nx = result.get(i + 1);
+
+                    attackArr[ny][nx] -= attackArr[minAttackArr[1]][minAttackArr[0]] / 2;
+                    if(attackArr[ny][nx] <= 0){
+                        attackArr[ny][nx] = 0;
+                        countAttacker -= 1;
+                    }
+                }
+                int findY = result.get(result.size() - 2);
+                int findX = result.get(result.size() - 1);
+                attackArr[findY][findX] -= attackArr[minAttackArr[1]][minAttackArr[0]];
+                if(attackArr[findY][findX] <= 0) {
+                    attackArr[findY][findX] = 0;
+                    countAttacker -= 1;
+                }
+
+
+                return true;
             }
-            // 그 외의 경우 pow / 2만큼의 공격을 진행합니다.
-            else {
-                board[nx][ny] -= pow / 2;
-                if(board[nx][ny] < 0)
-                    board[nx][ny] = 0;
-                isActive[nx][ny] = true;
+
+            for(int i = 0; i < 4; i++){
+                int nx = (curX + dx[i]) % M;
+                int ny = (curY + dy[i]) % N;
+
+                if(nx < 0) nx = M - 1;
+                if(ny < 0) ny = N - 1;
+                if(attackArr[ny][nx] == 0) continue;
+                // 0인 경우 아직 방문하지 않은 곳
+                if(direction[ny][nx] != 0) continue;
+                direction[ny][nx] = (i + 2) % 4 + 1; // 역방향
+                queue.add(nx);
+                queue.add(ny);
             }
         }
-    }
 
-    // 공격에 관여하지 않은 모든 살아있는 포탑의 힘을 1 증가시킵니다.
-    public static void reserve() {
-        for(int i = 0; i < n; i++) {
-            for(int j = 0; j < m; j++) {
-                if(isActive[i][j])
-                    continue;
-                if(board[i][j] == 0)
-                    continue;
-                board[i][j]++;
+
+        return false;
+
+    }
+    private static void shellAtack(int[] minAttackArr, int[] maxAttackArr){
+        // printAttack();
+        // 8방향 처리
+        for(int i = 0; i < 8; i++){
+            int nx = (dxy[i][0] + maxAttackArr[0]) % M;
+            int ny = (dxy[i][1] + maxAttackArr[1]) % N;
+
+            if(nx < 0) nx = M - 1;
+            if(ny < 0) ny = N - 1;
+
+            if(nx == minAttackArr[0] && ny == minAttackArr[1]) continue;
+            visitedAttack[ny][nx] = true;
+            if(attackArr[ny][nx] == 0) continue;
+            attackArr[ny][nx] -= attackArr[minAttackArr[1]][minAttackArr[0]] / 2;
+
+            if(attackArr[ny][nx] <= 0) {
+                attackArr[ny][nx] = 0;
+                countAttacker -= 1;
+            }
+        }
+
+        // 대상 처리
+        attackArr[maxAttackArr[1]][maxAttackArr[0]] -= attackArr[minAttackArr[1]][minAttackArr[0]];
+        if(attackArr[maxAttackArr[1]][maxAttackArr[0]] <= 0){
+            attackArr[maxAttackArr[1]][maxAttackArr[0]] = 0;
+            countAttacker -= 1;
+        }
+
+    }
+    private static void maintenance(){
+
+        for(int i = 0; i < N; i++){
+            for(int j = 0; j < M; j++){
+                if(visitedAttack[i][j]) continue;
+                if(attackArr[i][j] == 0) continue;
+
+                // 포탑 정비
+                attackArr[i][j] += 1;
             }
         }
     }
     private static void printAttack(){
-        for(int i = 0 ; i < board.length; i++){
-            System.out.println(Arrays.toString(board[i]));
+        for(int i = 0; i < N; i++){
+            System.out.println(Arrays.toString(attackArr[i]));
         }
+
         System.out.println();
     }
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
 
-        // 입력:
-        n = sc.nextInt();
-        m = sc.nextInt();
-        k = sc.nextInt();
-        board = new int[n][m];
-        for(int i = 0; i < n; i++)
-            for(int j = 0; j < m; j++)
-                board[i][j] = sc.nextInt();
-
-
-
-
-        // k턴 동안 진행됩니다.
-        while(k-- > 0) {
-            // 턴을 진행하기 전 살아있는 포탑을 정리합니다.
-            liveTurret = new ArrayList<>();
-            for(int i = 0; i < n; i++)
-                for(int j = 0; j < m; j++)
-                    if(board[i][j] > 0) {
-                        Turret newTurret = new Turret(i, j, rec[i][j], board[i][j]);
-                        liveTurret.add(newTurret);
-                    }
-
-            // 살아있는 포탑이 1개 이하라면 바로 종료합니다.
-            if(liveTurret.size() <= 1)
-                break;
-
-            // 턴을 진행하기 전 필요한 전처리를 정리해줍니다.
-            init();
-
-            // 각성을 진행합니다.
-            awake();
-
-            // 레이저 공격을 진행합니다.
-            boolean isSuc = laserAttack();
-
-
-            // 레이저 공격을 하지 못했다면 포탄 공격을 진행합니다.
-            if(!isSuc)
-                bombAttack();
-
-            // 공격에 관여하지 않은 모든 살아있는 포탑의 힘을 1 증가시킵니다.
-            reserve();
-            printAttack();
+    private static void printTime(){
+        for(int i = 0; i < N; i++){
+            System.out.println(Arrays.toString(timeArr[i]));
         }
 
-        // 살아있는 포탑의 힘 중 가장 큰 값을 출력합니다.
-        int ans = 0;
-        for(int i = 0; i < n; i++)
-            for(int j = 0; j < m; j++)
-                ans = Math.max(ans, board[i][j]);
+        System.out.println();
+    }
+    private static void gameStation(int time){
 
-        System.out.print(ans);
+        for(int i = 0; i < N; i++){
+            Arrays.fill(visitedAttack[i], false);
+        }
+
+        // (1)
+        int[] minAttackArr = selectionAttack();
+        // (2)
+        int[] maxAttackArr = findToTarget();
+        timeArr[minAttackArr[1]][minAttackArr[0]] = time;
+        // 방문처리
+        visitedAttack[maxAttackArr[1]][maxAttackArr[0]] = true;
+        visitedAttack[minAttackArr[1]][minAttackArr[0]] = true;
+
+        // 공격력 증가
+        attackArr[minAttackArr[1]][minAttackArr[0]] += (N + M);
+
+
+        // (3) 레이저 공격을 못했을 때는 포탄 공격
+        if(!laserAttack(minAttackArr, maxAttackArr, time)){
+            shellAtack(minAttackArr, maxAttackArr);
+            // System.out.println("레이저 공격 실패로 포탄 공격");
+        }
+
+        // (4) 포탑 정비
+        maintenance();
+
+        // System.out.println("시간 출력");
+        // printTime();
+
+    }
+
+
+    public static void main(String[] args) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        StringTokenizer tokenizer = new StringTokenizer(reader.readLine());
+
+        N = Integer.parseInt(tokenizer.nextToken());
+        M = Integer.parseInt(tokenizer.nextToken());
+        K = Integer.parseInt(tokenizer.nextToken());
+        attackArr = new int[N][M];
+        timeArr = new int[N][M];
+        visitedAttack = new boolean[N][M];
+
+        for(int i = 0; i < N; i++){
+            tokenizer = new StringTokenizer(reader.readLine());
+            for(int j = 0; j < M; j++){
+                attackArr[i][j] = Integer.parseInt(tokenizer.nextToken());
+                if(attackArr[i][j] > 0) countAttacker++;
+            }
+        }
+
+        for(int tk = 1; tk <= K; tk++){
+            gameStation(tk);
+//            printAttack();
+            if(countAttacker == 1) break;
+
+        }
+
+        int[] findXY = findMaxXY();
+        System.out.println(attackArr[findXY[0]][findXY[1]]);
+        reader.close();
     }
 }
