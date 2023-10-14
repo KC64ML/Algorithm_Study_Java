@@ -60,6 +60,7 @@ public class Solution {
     private static int[][] maxUserStore;
     private static ArrayList<GameUser> gameUserList;
     private static ArrayList<GameGun> gameGunList;
+    private static int[] result;
 
     private static boolean isWithInRange(int row, int col){
         if(0 <= row && 0 <= col && row < n && col < n) return true;
@@ -80,59 +81,152 @@ public class Solution {
             if(!isWithInRange(ny, nx)){
                 nx = gameUserList.get(i).x + dx[(direction + 2) % 4];
                 ny = gameUserList.get(i).y + dy[(direction + 2) % 4];
+//                System.out.println(i + " 번째");
+//                System.out.println("이전 : " + direction);
                 direction = (direction + 2) % 4;
+//                System.out.println("이후 : " + direction);
+//                System.out.println(gameUserList.get(i).x + " " + gameUserList.get(i).y + " => " + nx + " " + ny);
+//                System.out.println("반대방향 실행");
             }
 
 //            System.out.println(gameUserList.get(i).y + " " + gameUserList.get(i).x + " 는 =>" + ny + " " + nx + " direction : " + direction);
             // 좌표 업데이트 후 총 줍기
             // 배열인덱스 % 열 + 배열인덱스 / 행 : 좌표
             // ny * n + nx : 일차원방면 좌표
-            int curIndex = ny * n + nx;
+            int curGunIndex = ny * n + nx;
             // gameGunList[i].gunList.get(curIndex);
 
             // 사용자가 없고 해당 위치에 총이 있다면
-            if(maxUserStore[ny][nx] == 0 && gameGunList.get(curIndex).gameGunSize() > 0){
+            if(maxUserStore[ny][nx] == 0 && gameGunList.get(curGunIndex).gameGunSize() >= 0){
                 // 이전은 0, 새로운 곳은 i + 1 사용자 번호
                 maxUserStore[gameUserList.get(i).y][gameUserList.get(i).x] = 0;
                 maxUserStore[ny][nx] = i + 1;
-                int maxGameGunDamage = gameGunList.get(curIndex).findMaxGunDamage();
-                // 현재 소재하고 있는 총의 힘보다 쌘 총이 있다면 변경
-                if(maxGameGunDamage > gameGun){
-                    // 사용자가 소유한 총의 힘 초기값 0
-                    if(gameGun > 0) gameGunList.get(curIndex).addGameGunDamage(gameGun);
-                    gameGun = gameGunList.get(curIndex).removeMaxGunDamage();
+
+                if(gameGunList.get(curGunIndex).gameGunSize() > 0){
+                    int maxGameGunDamage = gameGunList.get(curGunIndex).findMaxGunDamage();
+                    // 현재 소재하고 있는 총의 힘보다 쌘 총이 있다면 변경
+                    if(maxGameGunDamage > gameGun){
+                        // 사용자가 소유한 총의 힘 초기값 0
+                        if(gameGun > 0) gameGunList.get(curGunIndex).addGameGunDamage(gameGun);
+                        gameGun = gameGunList.get(curGunIndex).removeMaxGunDamage();
+                    }
                 }
-            }else if(maxUserStore[ny][nx] > 0){
+//                System.out.println(i + " 번째 " + " 총이 있다면 실행");
+                gameUserList.set(i, new GameUser(nx, ny, gameUserList.get(i).attack, gameGun, direction));
+            }else if(maxUserStore[ny][nx] > 0) {
                 // 사용자가 있다면
-                int curUserIndex = maxUserStore[ny][nx];
-
+                int maxUserIndex = maxUserStore[ny][nx] - 1;
+                maxUserStore[gameUserList.get(i).y][gameUserList.get(i).x] = 0;
                 // 현재 저장되어 있는 사용자 공격력과 새로 들어온 공격자의 공격력 비교
-                int curStoreUserAttack = gameUserList.get(curUserIndex).gameGun + gameUserList.get(curUserIndex).attack;
-                int curUserAttack = gameGun + attack;
+                int curStoreUserAttack = gameUserList.get(maxUserIndex).gameGun + gameUserList.get(maxUserIndex).attack;
+                int newUserAttack = gameGun + attack;
 
-                // 기존 소유자 공격력보다 작은 경우, 총을 버리고 90도 회전 or 전진
-                if(curStoreUserAttack < curUserAttack){
-                    GameUser updateUser = gameUserList.get(curUserIndex);
+                // 기존 소유자 공격력이 작은 경우, 총을 버리고 90도 회전 or 전진
+                if (curStoreUserAttack < newUserAttack) {
+                    result[i] += Math.abs(curStoreUserAttack - newUserAttack);
+                    GameUser updateUser = gameUserList.get(maxUserIndex);
+                    gunRelatedUpdate(i, curGunIndex, updateUser, ny, nx);
+
+                    // 현재 위치에서 가장 강한 사용자의 인덱스를 저장한다.
+                    maxUserStore[ny][nx] = i + 1;
+                    // 좌표 이동
+                    moveCoordinate(maxUserIndex, ny, nx);
+
+                } else if (curStoreUserAttack > newUserAttack) {
+                    // 새로운 사용자의 공격력이 더 낮다면
+                    // - 총을 꺼내고, gameGun.add
+                    // - 좌표 이동
+
+                    result[maxUserIndex] += Math.abs(curStoreUserAttack - newUserAttack);
+                    // 현재 값보다 i가 작은 경우
+                    GameUser updateUser = gameUserList.get(i);
+                    gunRelatedUpdate(maxUserIndex, curGunIndex, updateUser, ny, nx);
+                    moveCoordinate(i, ny, nx);
+                }else {
+                    // 초기 능력치 + 공격력이 같은 경우
+                    // 초기 능력치로 비교한다.
+                    // gameUserList에서 maxUserIndex의 attack 과 gameUserList에서 i의 attack을 비교해서 더 작은 거를 이동
+                    if(gameUserList.get(maxUserIndex).attack > attack){
+                        GameUser updateUser = gameUserList.get(i);
+                        gunRelatedUpdate(maxUserIndex, curGunIndex, updateUser, ny, nx);
+                        moveCoordinate(i, ny, nx);
+                    }else if(gameUserList.get(maxUserIndex).attack < attack){
+                        GameUser updateUser = gameUserList.get(maxUserIndex);
+                        gunRelatedUpdate(i, curGunIndex, updateUser, ny, nx);
+                        // 현재 위치에서 가장 강한 사용자의 인덱스를 저장한다.
+                        maxUserStore[ny][nx] = i + 1;
+                        moveCoordinate(maxUserIndex, ny, nx);
+                    }
 
                 }
             }
-
-            // 행 열 저장되어 있는 공격력 보다 큰 사용자가 왔다면 공격력 변경
-
-            gameUserList.set(i, new GameUser(nx, ny, gameUserList.get(i).attack, gameGun, direction));
         }
     }
 
+    private static void gunRelatedUpdate(int index, int curGunIndex, GameUser updateUser, int ny, int nx){
+        // 현재 총을 위치에 버린다.
+        gameGunList.get(curGunIndex).addGameGunDamage(updateUser.gameGun);
+
+        // 현재 사용자 총과 비교해서 사용자 총 변경
+        if(gameUserList.get(index).gameGun < gameGunList.get(curGunIndex).findMaxGunDamage()){
+            gameGunList.get(curGunIndex).addGameGunDamage(gameUserList.get(index).gameGun);
+            int changeGunDamage = gameGunList.get(curGunIndex).removeMaxGunDamage();
+            gameUserList.set(index, new GameUser(nx, ny, gameUserList.get(index).attack, changeGunDamage, gameUserList.get(index).direction));
+        }
+
+    }
+
+    // maxUserIndex, i, ny, nx
+    private static void moveCoordinate(int index, int ny, int nx){
+        GameUser updateUser = gameUserList.get(index);
+        // 좌표 이동
+        int nextY = ny + dy[updateUser.direction];
+        int nextX = nx + dx[updateUser.direction];
+
+        if (!isWithInRange(nextY, nextX) || maxUserStore[nextY][nextX] > 0) {
+            // 90도 회전해야하는 상황 - 다음 위치가 범위 밖이거나, 다른 사용자가 있을 경우
+            nextY = ny + dy[(updateUser.direction + 1) % 4];
+            nextX = nx + dx[(updateUser.direction + 1) % 4];
+//            System.out.println("확인 : " + nextY + " " + nextX + " " + maxUserStore[nextY][nextX]);
+
+            if(maxUserStore[nextY][nextX] == 0){
+                maxUserStore[nextY][nextX] = (index + 1);
+                gameUserList.set(index, new GameUser(nextX, nextY, updateUser.attack, 0, (updateUser.direction + 1) % 4));
+            }
+            else gameUserList.set(index, new GameUser(nx, ny, updateUser.attack, 0, (updateUser.direction + 1) % 4));
+
+
+        } else if (isWithInRange(nextY, nextX) && maxUserStore[nextY][nextX] == 0) {
+            // 범위 안이고 다른 사용자가 없을 경우
+            int nextGunIndex = nextY * n + nextX;
+            int gunPower = 0;
+            // 새로운 위치에 총이 있다면
+            if (gameGunList.get(nextGunIndex).gameGunSize() > 0) {
+                gunPower = gameGunList.get(nextGunIndex).removeMaxGunDamage();
+            }
+            maxUserStore[nextY][nextX] = (index + 1);
+            gameUserList.set(index, new GameUser(nextX, nextY, updateUser.attack, gunPower, updateUser.direction));
+        }
+
+    }
+
+    private static void printMaxUserStore(){
+        for(int i = 0 ; i < n; i++){
+            System.out.println(Arrays.toString(maxUserStore[i]));
+
+        }
+    }
 
     private static void printGameUser(){
         for(int i = 0; i < gameUserList.size(); i++){
             System.out.println(gameUserList.get(i).y + " " + gameUserList.get(i).x + " " +
                     gameUserList.get(i).attack + " " + gameUserList.get(i).gameGun + " " + gameUserList.get(i).direction);
         }
+        System.out.println();
     }
     private static void gameStation(){
         gameUserMove();
-        printGameUser();
+//        printGameUser();
 //        gameUserAttack();
     }
 
@@ -146,6 +240,7 @@ public class Solution {
 
         gameGunList = new ArrayList<>();
         maxUserStore = new int[n][n];
+        result = new int[m];
 
         for(int i = 0; i < n; i++){
             tokenizer = new StringTokenizer(reader.readLine());
@@ -169,11 +264,18 @@ public class Solution {
         }
 
         for(int tk = 1; tk <= k; tk++){
-
             gameStation();
-
+            printMaxUserStore();
         }
 
+        for(int i = 0; i < gameUserList.size() ; i++){
+            System.out.println(gameUserList.get(i).y + " " + gameUserList.get(i).x);
+        }
+        for(int inResult : result){
+            System.out.print(inResult + " ");
+        }
+        System.out.println();
+//        System.out.println(Arrays.toString(result));
 
         reader.close();
     }
