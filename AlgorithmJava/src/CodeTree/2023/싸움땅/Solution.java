@@ -57,6 +57,7 @@ public class Solution {
     private static int n, m, k;
     private static int[] dx = {0, 1, 0, -1};
     private static int[] dy = {-1, 0, 1, 0};
+    private static int[][] maxUserStore;
     private static ArrayList<GameUser> gameUserList;
     private static ArrayList<GameGun> gameGunList;
 
@@ -73,6 +74,7 @@ public class Solution {
             int nx = gameUserList.get(i).x + dx[direction];
             int ny = gameUserList.get(i).y + dy[direction];
             int gameGun = gameUserList.get(i).gameGun;
+            int attack = gameUserList.get(i).attack;
 
             // 범위를 벗어난 경우 반대방향
             if(!isWithInRange(ny, nx)){
@@ -88,8 +90,11 @@ public class Solution {
             int curIndex = ny * n + nx;
             // gameGunList[i].gunList.get(curIndex);
 
-            // 해당 위치에 총이 있다면
-            if(gameGunList.get(curIndex).gameGunSize() > 0){
+            // 사용자가 없고 해당 위치에 총이 있다면
+            if(maxUserStore[ny][nx] == 0 && gameGunList.get(curIndex).gameGunSize() > 0){
+                // 이전은 0, 새로운 곳은 i + 1 사용자 번호
+                maxUserStore[gameUserList.get(i).y][gameUserList.get(i).x] = 0;
+                maxUserStore[ny][nx] = i + 1;
                 int maxGameGunDamage = gameGunList.get(curIndex).findMaxGunDamage();
                 // 현재 소재하고 있는 총의 힘보다 쌘 총이 있다면 변경
                 if(maxGameGunDamage > gameGun){
@@ -97,33 +102,27 @@ public class Solution {
                     if(gameGun > 0) gameGunList.get(curIndex).addGameGunDamage(gameGun);
                     gameGun = gameGunList.get(curIndex).removeMaxGunDamage();
                 }
+            }else if(maxUserStore[ny][nx] > 0){
+                // 사용자가 있다면
+                int curUserIndex = maxUserStore[ny][nx];
+
+                // 현재 저장되어 있는 사용자 공격력과 새로 들어온 공격자의 공격력 비교
+                int curStoreUserAttack = gameUserList.get(curUserIndex).gameGun + gameUserList.get(curUserIndex).attack;
+                int curUserAttack = gameGun + attack;
+
+                // 기존 소유자 공격력보다 작은 경우, 총을 버리고 90도 회전 or 전진
+                if(curStoreUserAttack < curUserAttack){
+                    GameUser updateUser = gameUserList.get(curUserIndex);
+
+                }
             }
+
+            // 행 열 저장되어 있는 공격력 보다 큰 사용자가 왔다면 공격력 변경
 
             gameUserList.set(i, new GameUser(nx, ny, gameUserList.get(i).attack, gameGun, direction));
         }
     }
 
-    // 동일한 위치에 사용자들이 있을 때
-    private static void gameUserAttack(){
-        boolean[] visited = new boolean[gameUserList.size()];
-        for(int i = 0; i < gameUserList.size(); i++){
-            int curX = gameUserList.get(i).x;
-            int curY = gameUserList.get(i).y;
-            int curDamage = gameUserList.get(i).attack + gameUserList.get(i).gameGun;
-            int curDirection = gameUserList.get(i).direction;
-
-            for(int j = 0; j < gameUserList.size(); j++){
-                if(i == j) continue;
-                if(visited[i] || visited[j]) continue;
-
-                int nextX = gameUserList.get(j).x;
-                int nextY = gameUserList.get(j).y;
-                int nextDamage = gameUserList.get(j).attack + gameUserList.get(j).gameGun;
-                int nextDirection = gameUserList.get(j).direction;
-
-            }
-        }
-    }
 
     private static void printGameUser(){
         for(int i = 0; i < gameUserList.size(); i++){
@@ -134,7 +133,7 @@ public class Solution {
     private static void gameStation(){
         gameUserMove();
         printGameUser();
-        gameUserAttack();
+//        gameUserAttack();
     }
 
     public static void main(String[] args) throws IOException {
@@ -145,8 +144,8 @@ public class Solution {
         m = Integer.parseInt(tokenizer.nextToken());
         k = Integer.parseInt(tokenizer.nextToken());
 
-
         gameGunList = new ArrayList<>();
+        maxUserStore = new int[n][n];
 
         for(int i = 0; i < n; i++){
             tokenizer = new StringTokenizer(reader.readLine());
