@@ -23,7 +23,6 @@ class Solution {
     }
     
     private int bfs(char[] dirs){
-        // Set<String> set = new HashSet<>();
         Map<Character, Integer> map = new HashMap<>();
         // 0 ~ 10, 0 ~ 10 좌표
         visited = new boolean[11][11][4];
@@ -50,24 +49,15 @@ class Solution {
                 result += 1;
             }
             
-       
-            
-            // set.add(new String(nx + "" + ny));
             curY = ny;
             curX = nx;
-        }
-        
-//         for(String inSet : set){
-//             System.out.println(inSet);
-//         }
-        
-//         return set.size();
+        }        
+
         return result;
         
     }
     
     public int solution(String dirs) {
-        
         return bfs(dirs.toCharArray());
     }
 }
