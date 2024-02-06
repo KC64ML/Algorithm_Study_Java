@@ -2,7 +2,7 @@ package programmers.LV2.다음_큰_숫자;
 
 
 // 효율성이 좋지 못한 코드 70점
-//class Solution {
+//class 함께_블록_쌓기 {
 //
 //    // 0과 1의 자리를 바꾸기 위해서 사용한 함수
 //    String inputStr(int zero, int one){
